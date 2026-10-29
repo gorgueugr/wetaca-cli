@@ -4,52 +4,52 @@ import { CliError, EXIT, printError, loadConfig, configPath, VERSION } from '../
 import * as C from '../src/commands.js';
 import { GUIDE } from '../src/guide.js';
 
-const HELP = `wetaca-cli ${VERSION} — tu Wetaca desde el terminal.
+const HELP = `wetaca-cli ${VERSION} — your Wetaca from the terminal.
 
-USO
-  wetaca [flags globales] <noun> <verb> [args] [flags]
+USAGE
+  wetaca [global flags] <noun> <verb> [args] [flags]
 
-COMANDOS
+COMMANDS
   auth          login [--refresh-token COOKIE | --cookies FILE | --cookies-stdin | --token T [--clipboard]] | status | logout
-  auth login importa la cookie refresh-token de wetaca.com (F12 → Application → Cookies;
-                dura ~120 días) y RENUEVA el token de sesión automáticamente cuando caduca.
-                Nunca se pide ni se guarda la contraseña.
-                --cookies FILE acepta exports del navegador: Netscape cookies.txt, JSON de
-                Cookie-Editor/EditThisCookie, cabecera Cookie: o el valor pelado; solo se
-                leen cookies de wetaca.com.
-                login --token: pega el token de sesión directo de wetaca.com (caduca ~1h)
-  me            show                       resumen de tu cuenta
+  auth login imports the refresh-token cookie from wetaca.com (F12 -> Application -> Cookies;
+                lasts ~120 days) and RENEWS the session token automatically when it expires.
+                The password is never asked for or stored.
+                --cookies FILE accepts browser exports: Netscape cookies.txt, Cookie-Editor/
+                EditThisCookie JSON, a Cookie: header, or the bare value; only cookies from
+                wetaca.com are read.
+                login --token: paste the session token straight from wetaca.com (expires ~1h)
+  me            show                       account summary
   subscription  show | pause [--weeks N] | resume
-  suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:cant,..."
-  deliveries    next | options | set-option <id>   entregas y pedidos pendientes / franjas disponibles / cambiar franja
-  menu          list [--zipcode CP]                menú de la semana (ids de platos para suggestion edit)
-  dish          show <slug>                        detalle de un plato
-  profiles      list | pause <id|nombre> | resume <id|nombre>
+  suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:qty,..."
+  deliveries    next | options | set-option <id>   pending deliveries and orders / available slots / change slot
+  menu          list [--zipcode ZIP]               weekly menu (dish ids for suggestion edit)
+  dish          show <slug>                        dish detail
+  profiles      list | pause <id|name> | resume <id|name>
   orders        list [--limit N] | show <id> | cancel <id> [--dry-run]
-  addresses     list | save --street C --number N [--floor F] --zipcode CP --city CIUDAD
-                save: cambia tu dirección de entrega (suscripción + semana próxima);
-                opcional --notes --firstname --lastname --phone (por defecto heredan de la actual)
-                --dry-run muestra el plan exacto antes de ejecutar
-                remove <id>: borra una dirección no en uso
+  addresses     list | save --street S --number N [--floor F] --zipcode ZIP --city CITY
+                save: changes your delivery address (subscription + next week);
+                optional --notes --firstname --lastname --phone (inherit the current ones by default)
+                --dry-run shows the exact plan before executing
+                remove <id>: deletes an unused address
   vouchers      list
   wallet        show
   config        path | list | get <k> | set <k> <v>
-  doctor        diagnóstico (node, red, sesión)
-  skills        get wetaca-usage           guía para agentes IA (embebida)
-  completion    bash | zsh | fish          script de autocompletado
+  doctor        diagnostics (node, network, session)
+  skills        get wetaca-usage           AI-agent guide (embedded)
+  completion    bash | zsh | fish          autocompletion script
 
-FLAGS GLOBALES
-  --format json|jsonl|pretty   salida (default json)
-  --error-format text|json     errores en stderr (default text)
-  --profile NOMBRE             perfil de sesión (env WETACA_PROFILE)
-  --yes                        confirma sin preguntar
-  --no-input                   nunca pregunta; las mutaciones exigen --yes
-  --dry-run                    muestra qué se haría, sin efectos
-  --debug                      una línea por petición HTTP en stderr
-  --no-color                   desactiva color (también NO_COLOR)
+GLOBAL FLAGS
+  --format json|jsonl|pretty   output (default json)
+  --error-format text|json     errors on stderr (default text)
+  --profile NAME               session profile (env WETACA_PROFILE)
+  --yes                        confirm without asking
+  --no-input                   never prompt; mutations require --yes
+  --dry-run                    show what would be done, no effects
+  --debug                      one line per HTTP request on stderr
+  --no-color                   disable color (also NO_COLOR)
 
-  Aliases top-level: \`me\`, \`doctor\`. Sin sesión: \`wetaca auth login\`.
-  Docs: docs/cli-spec.md. No oficial; usa la API web de wetaca.com.
+  Top-level aliases: \`me\`, \`doctor\`. Without a session: \`wetaca auth login\`.
+  Docs: docs/cli-spec.md. Not affiliated with Wetaca; uses the wetaca.com web API.
 `;
 
 const COMPLETION = {
@@ -209,11 +209,11 @@ async function main() {
       break;
     case 'skills':
       if (verb === 'get' && args[0] === 'wetaca-usage') { process.stdout.write(GUIDE); return 0; }
-      if (verb === 'list') { result = { skills: [{ id: 'wetaca-usage', description: 'Guía de uso para agentes IA' }] }; break; }
-      throw new CliError(EXIT.USAGE, "skills get espera 'wetaca-usage'.");
+      if (verb === 'list') { result = { skills: [{ id: 'wetaca-usage', description: 'AI-agent usage guide' }] }; break; }
+      throw new CliError(EXIT.USAGE, "skills get expects 'wetaca-usage'.");
     case 'completion': {
       const s = COMPLETION[verb];
-      if (!s) throw new CliError(EXIT.USAGE, 'completion espera: bash | zsh | fish');
+      if (!s) throw new CliError(EXIT.USAGE, 'completion expects: bash | zsh | fish');
       process.stdout.write(s + '\n');
       return 0;
     }

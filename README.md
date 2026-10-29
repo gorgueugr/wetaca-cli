@@ -1,6 +1,6 @@
 # wetaca-cli
 
-Gestiona tu **Wetaca** desde el terminal: suscripción, menú semanal, entregas y pedidos. Diseñado para personas **y para agentes IA**.
+Manage your **Wetaca** from the terminal: subscription, weekly menu, deliveries and orders. Designed for people **and for AI agents**.
 
 ```
 wetaca suggestion show --format pretty
@@ -9,77 +9,86 @@ wetaca suggestion show --format pretty
 ```
 id: 68f21a...
 skip: false
-validUntil: Jue 30 oct 23:59
+validUntil: Thu 30 Oct 23:59
 week: { week: 45, year: 2026 }
-pricingEur: { toPay: 42,30 €, shipping: 0,00 € }
-profiles: 2 (Perfil 1, Perfil 2)
+pricingEur: { toPay: €42.30, shipping: €0.00 }
+profiles: 2 (Profile 1, Profile 2)
 ```
 
-- **Todo lo que haces en la web**: ver el menú de la semana próxima por perfil, cambiar tuppers, saltar una semana, pausar la suscripción, ver entregas pasadas, cancelar un pedido, vouchers y cartera.
-- **Hecho para scripts y agentes IA**: JSON por defecto, exit codes estables, envoltorio de errores JSON, `--dry-run`, y guía de uso embebida (`wetaca skills get wetaca-usage`).
-- Un solo paquete Node sin dependencias. Requiere Node ≥ 18.
+- **Everything you do on the web**: view next week's menu per profile, swap tuppers, skip a week, pause the subscription, view past deliveries, cancel an order, vouchers and wallet.
+- **Built for scripts and AI agents**: JSON by default, stable exit codes, JSON error wrapper, `--dry-run`, and an embedded usage guide (`wetaca skills get wetaca-usage`).
+- A single dependency-free Node package. Requires Node ≥ 18.
 
-## Instalar
+## Install
 
 ```
-npm install -g wetaca-cli    # desde npm
+npm install -g wetaca-cli    # from npm
 wetaca doctor
 ```
 
-O desde el repo: `npm install -g .`
+Or from the repo: `npm install -g .`
 
-## Empezar
+## Get started
 
 ```
-wetaca auth login --refresh-token <COOKIE>   # cookie refresh-token de wetaca.com (dura ~120 días)
-wetaca auth login               # pide el refresh-token por prompt (oculto); también acepta un JWT de sesión
+wetaca auth login --refresh-token <COOKIE>   # refresh-token cookie from wetaca.com (lasts ~120 days)
+wetaca auth login               # prompts for the refresh-token (hidden); also accepts a session JWT
 wetaca me --format pretty
 ```
 
-El refresh-token se guarda en `%USERPROFILE%\.config\wetaca-cli\credentials.json` (o `$XDG_CONFIG_HOME/wetaca-cli`), con permisos restrictivos (solo tu usuario); el resto de ajustes en `config.json`. En CI: `WETACA_TOKEN` o `WETACA_REFRESH_TOKEN`.
+The refresh-token is stored in `%USERPROFILE%\.config\wetaca-cli\credentials.json` (or `$XDG_CONFIG_HOME/wetaca-cli`), with restrictive permissions (your user only); the remaining settings live in `config.json`. In CI: `WETACA_TOKEN` or `WETACA_REFRESH_TOKEN`.
 
 ## Quickstart
 
 ```
-# ¿qué toca esta semana?
+# what's on this week?
 wetaca suggestion show --format pretty
 
-# saltar la semana próxima (pide confirmación)
+# skip next week (asks for confirmation)
 wetaca suggestion pause
 
-# cambiar tuppers del menú (dry-run primero, luego --yes)
+# swap the menu's tuppers (dry-run first, then --yes)
 wetaca suggestion edit --profile-suggestion ID --set "productId:2,productIdB:1" --dry-run
 wetaca suggestion edit --profile-suggestion ID --set "productId:2,productIdB:1" --yes
 
-# pausar vacaciones
+# pause for holidays
 wetaca subscription pause --weeks 2 --yes
 wetaca subscription resume
 
-# pedidos
+# orders
 wetaca deliveries next
 wetaca orders cancel 12345 --dry-run
 wetaca orders cancel 12345 --yes
 
-# para agentes IA
+# for AI agents
 wetaca skills get wetaca-usage
 ```
 
-## Documentación
+## Documentation
 
 | doc | |
 |---|---|
-| [Especificación](docs/cli-spec.md) | cada comando, flag, exit code y operación GraphQL |
-| [Operaciones extraídas](docs/api-operations/) | los ~190 documentos GraphQL de la web de Wetaca |
-| [Guía para agentes](docs/agent-guide.md) | `wetaca skills get wetaca-usage` |
+| [Specification](docs/cli-spec.md) | every command, flag, exit code and GraphQL operation |
+| [Extracted operations](docs/api-operations/) | the ~190 GraphQL documents from Wetaca's website |
+| [Agent guide](docs/agent-guide.md) | `wetaca skills get wetaca-usage` |
 
-## Bueno saber
+## Good to know
 
-- **No afiliado a Wetaca.** Proyecto independiente, sin relación con Wetaca. Usa la API GraphQL de `api.wetaca.com` (la misma que la web y la app). Wetaca puede cambiarla; si lo hace, el CLI termina con exit 7 (`contract_drift`).
-- **Tu sesión se queda local.** El refresh-token se guarda solo en tu disco (fichero aparte, permisos restrictivos) y solo viaja hacia Wetaca.
-- **Nada sin confirmación.** Las operaciones con efectos reales (`suggestion pause/edit`, `subscription pause`, `orders cancel`) muestran un resumen y piden confirmación; sin terminal exigen `--yes`.
-- **No toca pagos.** Las tarjetas y pagos pendientes se gestionan en wetaca.com.
-- Sé amable: este CLI hace pocas peticiones, una por comando.
+- **Not affiliated with Wetaca.** Independent project, not related to Wetaca. It uses the `api.wetaca.com` GraphQL API (the same one as the website and the app). Wetaca may change it; if it does, the CLI exits with code 7 (`contract_drift`).
+- **Your session stays local.** The refresh-token is stored only on your disk (separate file, restrictive permissions) and only travels to Wetaca.
+- **Nothing without confirmation.** Operations with real effects (`suggestion pause/edit`, `subscription pause`, `orders cancel`) show a summary and ask for confirmation; without a terminal they require `--yes`.
+- **Does not touch payments.** Cards and pending payments are managed on wetaca.com.
+- Be kind: this CLI makes few requests, one per command.
 
-## Licencia
+## Credits & inspiration
+
+This project is based on the design and experience of other CLIs of the same kind:
+
+- [booksy-cli](https://github.com/GodGMN/booksy-cli) — Booksy management from the terminal; the origin of the contract wetaca-cli follows (JSON by default, stable exit codes, `--dry-run`, an AI-agent guide, cookie-based session with a separate credentials file).
+- [wallapop-cli](https://github.com/Microck/wallapop-cli) — Wallapop management from the terminal; the reference for long-lived cookie login and importing browser cookie exports (`--cookies`).
+
+Built with [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research).
+
+## License
 
 MIT.

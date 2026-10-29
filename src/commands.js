@@ -31,7 +31,7 @@ export function extractRefreshToken(text) {
     } catch { /* no era JSON, seguimos */ }
   }
   // Netscape cookies.txt: domain \t flag \t path \t secure \t expiry \t name \t value
-  // (las cookies httpOnly llevan el prefijo "#HttpOnly_" en la línea)
+  // (httpOnly cookies carry the "#HttpOnly_" prefix on the line)
   const lines = t.split(/\r?\n/);
   for (const raw of lines) {
     if (!raw) continue;
@@ -45,7 +45,7 @@ export function extractRefreshToken(text) {
   // Cabecera "Cookie: name=value; name=value" o pares sueltos
   const m = t.match(/(?:^|[\s;])refresh-token=([^;\s"']+)/);
   if (m) return m[1];
-  // Valor pelado (una única línea sin tabulaciones ni ';'); un "=" puede ser padding base64
+  // Bare value (a single line with no tabs and no ';'); an "=" can be base64 padding
   if (lines.length === 1 && !t.includes('\t') && !t.includes(';')) {
     const eq = t.indexOf('=');
     if (eq === -1) return t;
@@ -61,27 +61,27 @@ async function confirm(flags, summary) {
   if (flags.yes) return;
   if (flags.noInput || !process.stdin.isTTY) {
     throw usageError(
-      `Operación con efectos reales; se pide confirmación. Resumen: ${summary}\n` +
-      'Sin terminal: repite con --yes para confirmar.',
-      { reason: 'confirmation_required', suggested_commands: ['repite el comando con --yes'] });
+      `Real-effect operation; confirmation required. Summary: ${summary}\n` +
+      'No terminal: repeat with --yes to confirm.',
+      { reason: 'confirmation_required', suggested_commands: ['repeat the command with --yes'] });
   }
   const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
-  const ans = (await rl.question(`\n${summary}\n¿Confirmar? [y/N] `)).trim().toLowerCase();
+  const ans = (await rl.question(`\n${summary}\nConfirm? [y/N] `)).trim().toLowerCase();
   rl.close();
   if (ans !== 'y' && ans !== 'yes' && ans !== 's' && ans !== 'si') {
-    throw usageError('Cancelado por el usuario.', { reason: 'declined' });
+    throw usageError('Cancelled by the user.', { reason: 'declined' });
   }
 }
 
 function requireId(v, what) {
-  if (!v) throw usageError(`Falta <${what}>.`);
+  if (!v) throw usageError(`Missing <${what}>.`);
   return v;
 }
 
 async function nextSuggestionId(profile, debug) {
   const d = await gql(`query nextSuggestionId { nextSuggestion { id } }`, {}, { profile, debug });
   if (!d.nextSuggestion?.id) {
-    throw new CliError(EXIT.NOT_FOUND, 'No hay sugerencia activa para la semana próxima.', { reason: 'no_suggestion' });
+    throw new CliError(EXIT.NOT_FOUND, 'No active suggestion for next week.', { reason: 'no_suggestion' });
   }
   return d.nextSuggestion.id;
 }
@@ -134,7 +134,7 @@ export async function authLogin(args, flags, ctx) {
   let viaRefresh = false;
 
   if (flags.clipboard) {
-    // leer token del portapapeles (p. ej. extraído de la consola DevTools de wetaca.com)
+    // read the token from the clipboard (e.g. extracted from the wetaca.com DevTools console)
     const { execSync } = child_process;
     try {
       const out = process.platform === 'win32'
@@ -144,9 +144,9 @@ export async function authLogin(args, flags, ctx) {
       const m = String(out).match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
       token = m ? m[0] : String(out).trim();
     } catch (e) {
-      throw usageError('No se pudo leer el portapapeles: ' + e.message);
+      throw usageError('Could not read the clipboard: ' + e.message);
     }
-    if (!token) throw usageError('El portapapeles está vacío.');
+    if (!token) throw usageError('The clipboard is empty.');
   }
 
   let customer = null;
@@ -162,12 +162,12 @@ export async function authLogin(args, flags, ctx) {
         cookieFileInput = fs.readFileSync(String(flags.cookies).trim(), 'utf8');
       }
     } catch (e) {
-      throw usageError('No se pudo leer el fichero de cookies: ' + e.message);
+      throw usageError('Could not read the cookies file: ' + e.message);
     }
   }
   if (cookieFileInput != null || flags['refresh-token'] || process.env.WETACA_REFRESH_TOKEN) {
-    // Importar el refresh-token de la web (cookie de 120 días)
-    // y dejar que /session/refresh fabrique los tokens de sesión. Nunca se pide contraseña.
+    // Import the refresh-token from the web (120-day cookie)
+    // and let /session/refresh mint the session tokens. No password is ever requested.
     let rt;
     if (cookieFileInput != null) {
       rt = extractRefreshToken(cookieFileInput);
@@ -176,8 +176,8 @@ export async function authLogin(args, flags, ctx) {
     }
     if (!rt) {
       throw new CliError(EXIT.AUTH,
-        'En el export de cookies no hay ninguna cookie "refresh-token" de wetaca.com. ' +
-        'Asegúrate de exportar las cookies estando logueado en wetaca.com (la cookie se crea al iniciar sesión).',
+        'The cookie export contains no "refresh-token" cookie from wetaca.com. ' +
+        'Make sure to export the cookies while logged in to wetaca.com (the cookie is created on login).',
         { reason: 'refresh_token_missing', suggested_commands: ['wetaca auth login --refresh-token VALOR'] });
     }
     saveProfile(ctx.profile, { refreshToken: rt });
@@ -186,16 +186,16 @@ export async function authLogin(args, flags, ctx) {
       viaRefresh = true;
     } catch (e) {
       throw new CliError(e.exitCode || EXIT.AUTH,
-        'No se pudo renovar la sesión con ese refresh-token. ' + e.message,
+        'Could not refresh the session with that refresh-token. ' + e.message,
         { reason: 'invalid_refresh_token', suggested_commands: ['wetaca auth login --token T'] });
     }
     const c = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
     customer = c.customer;
   } else if (token) {
     // token supplied directly (advanced). Limpiar y validar llamando a la API de verdad
-    // (la prueba que importa es que `customer` responda; tokenIsValid es solo diagnóstico).
+    // (the test that matters is that `customer` responds; tokenIsValid is diagnostics only).
     token = token.trim().replace(/^["']|["']$/g, '').replace(/^Bearer\s+/i, '');
-    if (!token) throw usageError('El token llegó vacío.');
+    if (!token) throw usageError('The token was empty.');
     try {
       const d = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
       customer = d.customer;
@@ -206,22 +206,22 @@ export async function authLogin(args, flags, ctx) {
         isValid = v.tokenIsValid;
       } catch { /* seguimos con el error original */ }
       throw new CliError(EXIT.AUTH,
-        `La API rechazó el token${isValid === false ? ' (tokenIsValid=false)' : ''}. ` +
-        'Comprueba que copiaste SOLO lo que va después de "Bearer " en la cabecera authorization ' +
-        '(sin la palabra Bearer, sin comillas). Error original: ' + e.message,
+        `The API rejected the token${isValid === false ? ' (tokenIsValid=false)' : ''}. ` +
+        'Check that you copied ONLY what comes after "Bearer " in the authorization header ' +
+        '(without the word Bearer, without quotes). Original error: ' + e.message,
         { reason: 'invalid_token' });
     }
   } else {
-    // Sin --refresh-token ni --token: pedirlo por terminal (oculto). Acepta la cookie
-    // refresh-token (preferida, dura 120 días) o un JWT de sesión directo.
+    // Without --refresh-token or --token: prompt for it on the terminal (hidden). Accepts the
+    // refresh-token cookie (preferred, lasts 120 days) or a direct session JWT.
     if (ctx.noInput || !process.stdin.isTTY) {
-      throw usageError('Sin terminal hace falta --refresh-token VALOR (cookie de wetaca.com, F12 → Application → Cookies), o --token VALOR / --token --clipboard.');
+      throw usageError('Without a terminal you need --refresh-token VALUE (a wetaca.com cookie, F12 → Application → Cookies), or --token VALUE / --token --clipboard.');
     }
-    const pasted = await ask('Pega el refresh-token (o el token de sesión) y pulsa Enter: ', { hidden: true });
+    const pasted = await ask('Paste the refresh-token (or the session token) and press Enter: ', { hidden: true });
     const v = (pasted || '').trim().replace(/^["']|["']$/g, '');
-    if (!v) throw usageError('No se pegó ningún token.');
+    if (!v) throw usageError('No token was pasted.');
     if (v.startsWith('eyJ')) {
-      token = v; // JWT de sesión directo
+      token = v; // direct session JWT
     } else {
       saveProfile(ctx.profile, { refreshToken: v });
       try {
@@ -229,7 +229,7 @@ export async function authLogin(args, flags, ctx) {
         viaRefresh = true;
       } catch (e) {
         throw new CliError(e.exitCode || EXIT.AUTH,
-          'No se pudo renovar la sesión con ese refresh-token. ' + e.message,
+          'Could not refresh the session with that refresh-token. ' + e.message,
           { reason: 'invalid_refresh_token', suggested_commands: ['wetaca auth login --token T'] });
       }
     }
@@ -237,19 +237,19 @@ export async function authLogin(args, flags, ctx) {
       const c = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
       customer = c.customer;
     } catch (e) {
-      throw new CliError(EXIT.AUTH, 'La API rechazó el token. Error original: ' + e.message,
+      throw new CliError(EXIT.AUTH, 'The API rejected the token. Original error: ' + e.message,
         { reason: 'invalid_token' });
     }
   }
 
-  // Se guardan el token de sesión y (si se importó) el refresh-token. NUNCA la contraseña.
+  // The session token and (if imported) the refresh-token are saved. NEVER the password.
   saveProfile(ctx.profile, {
     token,
     email: customer?.email || null,
   });
   return {
     ok: true, profile: ctx.profile, email: customer?.email || null,
-    via: viaRefresh ? 'refresh-token (auto-renovable ~120 días)' : 'token de sesión (caduca; renovalo con --refresh-token)',
+    via: viaRefresh ? 'refresh-token (auto-renewable ~120 days)' : 'session token (expires; renew it with --refresh-token)',
     token: token.slice(0, 8) + '…',
   };
 }
@@ -323,12 +323,12 @@ export async function subShow(args, flags, ctx) {
 export async function subPause(args, flags, ctx) {
   const weeks = flags.weeks ? parseInt(flags.weeks, 10) : null;
   if (flags.weeks && (!Number.isInteger(weeks) || weeks < 1)) {
-    throw usageError('--weeks debe ser un entero ≥ 1.');
+    throw usageError('--weeks must be an integer ≥ 1.');
   }
   const d0 = await gql(Q.SUBSCRIBER_STATUS, {}, { profile: ctx.profile, debug: ctx.debug });
   const acc = d0.subscriptionAccountByCustomer;
-  if (!acc?.isActive) throw new CliError(EXIT.API, 'La suscripción no está activa; nada que pausar.', { reason: 'not_active' });
-  const summary = `Pausar la suscripción ${acc.id}${weeks ? ` durante ${weeks} semana(s)` : ' (pausa indefinida)'}.`;
+  if (!acc?.isActive) throw new CliError(EXIT.API, 'The subscription is not active; nothing to pause.', { reason: 'not_active' });
+  const summary = `Pause subscription ${acc.id}${weeks ? ` for ${weeks} week(s)` : ' (indefinite pause)'}.`;
   await confirm(flags, summary);
   const d = await gql(Q.CANCEL_SUBSCRIPTION, {
     subscriptionAccountId: acc.id, path: '/pausar', pausedWeeks: weeks, feedback: flags.feedback || null,
@@ -339,9 +339,9 @@ export async function subPause(args, flags, ctx) {
 export async function subResume(args, flags, ctx) {
   const d0 = await gql(Q.SUBSCRIBER_STATUS, {}, { profile: ctx.profile, debug: ctx.debug });
   const acc = d0.subscriptionAccountByCustomer;
-  if (!acc) throw new CliError(EXIT.NOT_FOUND, 'No hay cuenta de suscripción en este perfil.', { reason: 'no_account' });
+  if (!acc) throw new CliError(EXIT.NOT_FOUND, 'No subscription account in this profile.', { reason: 'no_account' });
   if (acc.isActive) return { ok: true, alreadyActive: true, subscriptionAccount: acc };
-  await confirm(flags, `Reactivar la suscripción ${acc.id}.`);
+  await confirm(flags, `Resume subscription ${acc.id}.`);
   const d = await gql(Q.ACTIVATE_SUBSCRIPTION, { subscriptionAccountId: acc.id }, { profile: ctx.profile, debug: ctx.debug });
   return { ok: true, subscriptionAccount: d.subscriptionAccount };
 }
@@ -351,7 +351,7 @@ export async function subResume(args, flags, ctx) {
 export async function sugShow(args, flags, ctx) {
   const d = await gql(Q.NEXT_SUGGESTION, {}, { profile: ctx.profile, debug: ctx.debug });
   const s = d.nextSuggestion;
-  if (!s) throw new CliError(EXIT.NOT_FOUND, 'No hay sugerencia activa para la semana próxima.', { reason: 'no_suggestion' });
+  if (!s) throw new CliError(EXIT.NOT_FOUND, 'No active suggestion for next week.', { reason: 'no_suggestion' });
   return {
     id: s.id,
     skip: s.skip,
@@ -380,14 +380,14 @@ export async function sugShow(args, flags, ctx) {
 
 export async function sugPause(args, flags, ctx) {
   const sid = flags.suggestion || await nextSuggestionId(ctx.profile, ctx.debug);
-  await confirm(flags, `Saltar (pausar) la entrega de la semana próxima (suggestion ${sid}).`);
+  await confirm(flags, `Skip (pause) next week's delivery (suggestion ${sid}).`);
   const d = await gql(Q.PAUSE_SUGGESTION, { suggestionId: sid, path: '/menu', feedback: flags.feedback || null }, { profile: ctx.profile, debug: ctx.debug });
   return { ok: true, paused: d.paused };
 }
 
 export async function sugResume(args, flags, ctx) {
   const sid = flags.suggestion || await nextSuggestionId(ctx.profile, ctx.debug);
-  await confirm(flags, `Reactivar la entrega de la semana próxima (suggestion ${sid}).`);
+  await confirm(flags, `Resume next week's delivery (suggestion ${sid}).`);
   const d = await gql(Q.RESUME_SUGGESTION, { suggestionId: sid }, { profile: ctx.profile, debug: ctx.debug });
   return { ok: true, resumed: d.resumed };
 }
@@ -395,17 +395,17 @@ export async function sugResume(args, flags, ctx) {
 // `suggestion edit --profile-suggestion ID --set "productId:qty,productId:qty"`
 export async function sugEdit(args, flags, ctx) {
   const psid = requireId(flags['profile-suggestion'] || flags.profileSuggestion, '--profile-suggestion');
-  if (!flags.set) throw usageError('Falta --set "productId:qty,...". Ejemplo: --set "abc123:2,def456:1".');
+  if (!flags.set) throw usageError('Missing --set "productId:qty,...". Example: --set "abc123:2,def456:1".');
   const productsInput = flags.set.split(',').map((pair) => {
     const [id, qty] = pair.split(':').map((x) => x.trim());
-    if (!id || !qty) throw usageError(`Par inválido en --set: '${pair}' (formato id:cantidad).`);
+    if (!id || !qty) throw usageError(`Invalid pair in --set: '${pair}' (id:qty format).`);
     const n = parseInt(qty, 10);
-    if (!Number.isInteger(n) || n < 0) throw usageError(`Cantidad inválida en '${pair}'.`);
+    if (!Number.isInteger(n) || n < 0) throw usageError(`Invalid quantity in '${pair}'.`);
     return { id, quantity: n };
   });
   const payload = { profileSuggestionId: psid, productsInput, resumeAccountSuggestion: flags.resume === undefined ? undefined : flags.resume === 'true' || flags.resume === true };
   if (ctx.dryRun) return { dryRun: true, wouldSend: { query: 'editProfileSuggestionMenu', variables: payload } };
-  await confirm(flags, `Cambiar el menú del perfil-sugerencia ${psid} a: ${flags.set}.`);
+  await confirm(flags, `Change the menu of profile-suggestion ${psid} to: ${flags.set}.`);
   const d = await gql(Q.EDIT_PROFILE_SUGGESTION_MENU, payload, { profile: ctx.profile, debug: ctx.debug });
   return { ok: true, result: d.editProfileSuggestionProducts };
 }
@@ -427,16 +427,16 @@ export async function ordersList(args, flags, ctx) {
 
 export async function ordersShow(args, flags, ctx) {
   const id = parseInt(requireId(args[0], '<order-id>'), 10);
-  if (!Number.isInteger(id)) throw usageError('El id de pedido debe ser numérico.');
+  if (!Number.isInteger(id)) throw usageError('The order id must be numeric.');
   const d = await gql(Q.ORDER_DETAILS, { id }, { profile: ctx.profile, debug: ctx.debug });
   return { ...d.order, priceEur: cents(d.order.price) };
 }
 
 export async function ordersCancel(args, flags, ctx) {
   const id = parseInt(requireId(args[0], '<order-id>'), 10);
-  if (!Number.isInteger(id)) throw usageError('El id de pedido debe ser numérico.');
+  if (!Number.isInteger(id)) throw usageError('The order id must be numeric.');
   if (ctx.dryRun) return { dryRun: true, wouldSend: { query: 'cancelConfirmedOrder', variables: { orderId: id } } };
-  await confirm(flags, `Cancelar el pedido ${id} (cobra efecto en Wetaca).`);
+  await confirm(flags, `Cancel order ${id} (takes effect on Wetaca).`);
   const d = await gql(Q.CANCEL_ORDER, { orderId: id }, { profile: ctx.profile, debug: ctx.debug });
   return { ok: true, cancelled: d.cancelConfirmedOrder, refundEur: cents(d.cancelConfirmedOrder?.amount) };
 }
@@ -448,22 +448,22 @@ export async function addrList(args, flags, ctx) {
   return d.addresses;
 }
 
-// Cambia la dirección de entrega: crea la dirección nueva (saveAddress) y la asigna
-// a la suscripción (editDeliveryAccountInfo) y a la sugerencia de la semana próxima
-// (editSuggestionDelivery), manteniendo la opción de envío actual. Flujo idéntico al de la web.
+// Changes the delivery address: creates the new address (saveAddress) and assigns it
+// to the subscription (editDeliveryAccountInfo) and to next week's suggestion
+// (editSuggestionDelivery), keeping the current delivery option. Flow identical to the web's.
 export async function addrSave(args, flags, ctx) {
   const f = (k) => (flags[k] != null ? String(flags[k]).trim() : undefined);
   const street = f('street'), number = f('number'), zipcode = f('zipcode'), city = f('city');
   if (!street || !number || !zipcode || !city) {
-    throw usageError('Faltan campos: --street, --number, --zipcode y --city son obligatorios ' +
-      '(opcionales: --floor, --notes, --firstname, --lastname, --phone; por defecto se heredan de tu dirección actual).');
+    throw usageError('Missing fields: --street, --number, --zipcode and --city are required ' +
+      '(optional: --floor, --notes, --firstname, --lastname, --phone; by default they are inherited from your current address).');
   }
   const cur = await gql(Q.DELIVERY_CONFIG, {}, { profile: ctx.profile, debug: ctx.debug });
   const sub = cur.subscriptionAccountByCustomer;
   const curAddr = sub?.delivery?.address || {};
   const deliveryOptionId = sub?.delivery?.option?.id;
   const suggestion = cur.nextSuggestion;
-  if (!deliveryOptionId) throw new CliError(EXIT.DRIFT, 'No pude leer la opción de envío actual de tu suscripción.', { reason: 'no_delivery_option' });
+  if (!deliveryOptionId) throw new CliError(EXIT.DRIFT, 'Could not read the current delivery option of your subscription.', { reason: 'no_delivery_option' });
 
   const address = {
     firstname: f('firstname') ?? curAddr.firstname,
@@ -476,9 +476,9 @@ export async function addrSave(args, flags, ctx) {
     phone: f('phone') ?? curAddr.phone,
     notes: f('notes') ?? curAddr.notes ?? null,
   };
-  if (address.zipcode == null || Number.isNaN(address.zipcode)) throw usageError('--zipcode debe ser numérico.');
-  // OJO: deliveryConfiguration NO lleva "type" — la API devuelve 500 si se lo mandas
-  // (probado en vivo; el shape válido es {optionConfiguration: {addressId, deliveryOptionId}}).
+  if (address.zipcode == null || Number.isNaN(address.zipcode)) throw usageError('--zipcode must be numeric.');
+  // NOTE: deliveryConfiguration does NOT carry "type" — the API returns 500 if you send it
+  // (tested live; the valid shape is {optionConfiguration: {addressId, deliveryOptionId}}).
   const deliveryConfiguration = { optionConfiguration: { addressId: null, deliveryOptionId } };
   const plan = {
     saveAddress: address,
@@ -486,7 +486,7 @@ export async function addrSave(args, flags, ctx) {
     suggestion: suggestion ? { mutation: 'editSuggestionDelivery', suggestionId: suggestion.id, deliveryConfiguration } : null,
   };
   if (ctx.dryRun) return { dryRun: true, wouldSend: plan };
-  await confirm(flags, `Cambiar tu dirección de entrega a ${street} ${number}${address.floor ? ', ' + address.floor : ''} (${address.zipcode} ${city}).`);
+  await confirm(flags, `Change your delivery address to ${street} ${number}${address.floor ? ', ' + address.floor : ''} (${address.zipcode} ${city}).`);
   const saved = await gql(Q.SAVE_ADDRESS, { address }, { profile: ctx.profile, debug: ctx.debug });
   const addressId = saved.saveAddress.id;
   const deliveryConfiguration2 = { optionConfiguration: { addressId, deliveryOptionId } };
@@ -505,22 +505,22 @@ export async function addrSave(args, flags, ctx) {
   };
 }
 
-// ---------- catálogo ----------
+// ---------- catalog ----------
 
-// Menú semanal disponible para tu CP (los ids son los que usa suggestion edit --set)
+// Weekly menu available for your zipcode (ids are the ones used by suggestion edit --set)
 export async function menuList(args, flags, ctx) {
   const zipcode = flags.zipcode != null ? parseInt(flags.zipcode, 10) : undefined;
   const d = await gql(Q.SEGMENT_MENU, { zipcode, isSubscriptionIntent: true }, { profile: ctx.profile, debug: ctx.debug });
   const m = d.segmentMenu;
-  if (!m) throw new CliError(EXIT.NOT_FOUND, 'No hay menú disponible para ese código postal.', { reason: 'no_menu' });
+  if (!m) throw new CliError(EXIT.NOT_FOUND, 'No menu available for that postal code.', { reason: 'no_menu' });
   return { week: m.week, year: m.year, dateFrom: m.dateFrom, dateTo: m.dateTo, dishes: m.dishes };
 }
 
 export async function dishShow(args, flags, ctx) {
   const slug = args[0];
-  if (!slug) throw usageError('Uso: wetaca dish show <slug>  (los slugs salen de `wetaca menu list`)');
+  if (!slug) throw usageError('Usage: wetaca dish show <slug>  (slugs come from `wetaca menu list`)');
   const d = await gql(Q.DISH, { slug }, { profile: ctx.profile, debug: ctx.debug });
-  if (!d.dish) throw new CliError(EXIT.NOT_FOUND, `No existe el plato '${slug}'.`, { reason: 'not_found' });
+  if (!d.dish) throw new CliError(EXIT.NOT_FOUND, `Dish '${slug}' does not exist.`, { reason: 'not_found' });
   return d.dish;
 }
 
@@ -529,25 +529,25 @@ export async function dishShow(args, flags, ctx) {
 export async function delivOptions(args, flags, ctx) {
   const cur = await gql(Q.DELIVERY_CONFIG, {}, { profile: ctx.profile, debug: ctx.debug });
   const zipcode = flags.zipcode != null ? parseInt(flags.zipcode, 10) : cur.subscriptionAccountByCustomer?.delivery?.address?.zipcode;
-  if (!zipcode) throw usageError('No pude leer tu CP; pásalo con --zipcode.');
+  if (!zipcode) throw usageError('Could not read your postal code; pass it with --zipcode.');
   const d = await gql(Q.DELIVERY_OPTIONS, { zipcode }, { profile: ctx.profile, debug: ctx.debug });
   const currentId = cur.subscriptionAccountByCustomer?.delivery?.option?.id;
   return d.deliveryOptions.map((o) => ({ ...o, isCurrent: o.id === currentId, priceEur: cents(o.price) }));
 }
 
-// Cambia la franja de entrega (option) para la suscripción y la semana próxima.
+// Changes the delivery slot (option) for the subscription and next week.
 export async function delivSetOption(args, flags, ctx) {
   const optionId = parseInt(requireId(args[0], '<option-id>'), 10);
-  if (!Number.isInteger(optionId)) throw usageError('El id de franja debe ser numérico (salen de `wetaca deliveries options`).');
+  if (!Number.isInteger(optionId)) throw usageError('The delivery window id must be numeric (they come from `wetaca deliveries options`).');
   const cur = await gql(Q.DELIVERY_CONFIG, {}, { profile: ctx.profile, debug: ctx.debug });
   const sub = cur.subscriptionAccountByCustomer;
   const suggestion = cur.nextSuggestion;
   const curOption = sub?.delivery?.option;
-  if (!curOption) throw new CliError(EXIT.DRIFT, 'No pude leer la franja actual.', { reason: 'no_delivery_option' });
+  if (!curOption) throw new CliError(EXIT.DRIFT, 'Could not read the current delivery window.', { reason: 'no_delivery_option' });
   const opts = await gql(Q.DELIVERY_OPTIONS, { zipcode: sub?.delivery?.address?.zipcode }, { profile: ctx.profile, debug: ctx.debug });
   const opt = (opts.deliveryOptions || []).find((o) => o.id === optionId);
   if (!opt) throw new CliError(EXIT.NOT_FOUND,
-    `La franja ${optionId} no está disponible para tu CP. Disponibles: ${(opts.deliveryOptions || []).map((o) => o.id).join(', ')}`,
+    `Delivery window ${optionId} is not available for your postal code. Available: ${(opts.deliveryOptions || []).map((o) => o.id).join(', ')}`,
     { reason: 'option_not_available' });
   const deliveryConfiguration = { optionConfiguration: { deliveryOptionId: optionId, addressId: sub?.delivery?.address?.id } };
   const plan = {
@@ -556,7 +556,7 @@ export async function delivSetOption(args, flags, ctx) {
     suggestion: suggestion ? { mutation: 'editSuggestionDelivery', suggestionId: suggestion.id, deliveryConfiguration } : null,
   };
   if (ctx.dryRun) return { dryRun: true, wouldSend: plan };
-  await confirm(flags, `Cambiar tu franja de entrega a ${fmtWindow(opt)} (era ${fmtWindow(curOption)}).`);
+  await confirm(flags, `Change your delivery window to ${fmtWindow(opt)} (was ${fmtWindow(curOption)}).`);
   const subRes = await gql(Q.EDIT_SUBSCRIPTION_DELIVERY,
     { subscriptionDeliveryInput: { deliveryConfiguration } }, { profile: ctx.profile, debug: ctx.debug });
   const sugRes = suggestion ? await gql(Q.EDIT_SUGGESTION_DELIVERY,
@@ -579,13 +579,13 @@ export async function profilesList(args, flags, ctx) {
 }
 
 async function resolveProfileId(args) {
-  const key = requireId(args[0], '<perfil-id|nombre>');
+  const key = requireId(args[0], '<profile-id|name>');
   const d = await gql(Q.PROFILES, {}, {});
   const profiles = d.subscriptionAccountByCustomer?.profiles || [];
   const p = profiles.find((x) => x.id === key || x._id === key
     || x.name?.toLowerCase() === key.toLowerCase());
   if (!p) throw new CliError(EXIT.NOT_FOUND,
-    `No existe el perfil '${key}'. Perfiles: ${profiles.map((x) => `${x.name} (${x.id})`).join(', ')}`,
+    `Profile '${key}' does not exist. Profiles: ${profiles.map((x) => `${x.name} (${x.id})`).join(', ')}`,
     { reason: 'not_found' });
   return p;
 }
@@ -593,7 +593,7 @@ async function resolveProfileId(args) {
 export async function profilesPause(args, flags, ctx) {
   const p = await resolveProfileId(args);
   if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'pauseProfile', profileId: p.id } };
-  await confirm(flags, `Pausar el perfil '${p.name}' (deja de recibir tuppers de ese perfil).`);
+  await confirm(flags, `Pause profile '${p.name}' (stops receiving tuppers for that profile).`);
   const d = await gql(Q.PAUSE_PROFILE, { profileId: p.id }, { profile: ctx.profile, debug: ctx.debug });
   return { ok: true, profile: d.pauseProfile };
 }
@@ -601,24 +601,24 @@ export async function profilesPause(args, flags, ctx) {
 export async function profilesResume(args, flags, ctx) {
   const p = await resolveProfileId(args);
   if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'resumeProfile', profileId: p.id } };
-  await confirm(flags, `Reactivar el perfil '${p.name}'.`);
+  await confirm(flags, `Resume profile '${p.name}'.`);
   const d = await gql(Q.RESUME_PROFILE, { profileId: p.id }, { profile: ctx.profile, debug: ctx.debug });
   return { ok: true, profile: d.resumeProfile };
 }
 
-// Borra una dirección guardada. Protección: si está en uso por la suscripción o la
-// semana próxima, exige asignar antes otra (addresses save).
+// Deletes a saved address. Protection: if it is in use by the subscription or
+// next week, it requires assigning another one first (addresses save).
 export async function addrRemove(args, flags, ctx) {
   const id = parseInt(requireId(args[0], '<address-id>'), 10);
-  if (!Number.isInteger(id)) throw usageError('El id de dirección debe ser numérico (salen de `wetaca addresses list`).');
+  if (!Number.isInteger(id)) throw usageError('The address id must be numeric (they come from `wetaca addresses list`).');
   const d0 = await gql(Q.ADDRESSES, {}, { profile: ctx.profile, debug: ctx.debug });
   const a = (d0.addresses || []).find((x) => x.id === id);
-  if (!a) throw new CliError(EXIT.NOT_FOUND, `No existe la dirección ${id}.`, { reason: 'not_found' });
+  if (!a) throw new CliError(EXIT.NOT_FOUND, `Address ${id} does not exist.`, { reason: 'not_found' });
   if (a.isSubscriptionAddress || a.isSuggestionAddress) {
-    throw usageError(`La dirección ${id} (${a.street} ${a.number}) está en uso; primero asigna otra con \`wetaca addresses save\`.`);
+    throw usageError(`Address ${id} (${a.street} ${a.number}) is in use; first assign another with \`wetaca addresses save\`.`);
   }
   if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'removeAddress', addressId: id } };
-  await confirm(flags, `Borrar la dirección ${id} (${a.street} ${a.number}, ${a.zipcode} ${a.city}).`);
+  await confirm(flags, `Delete address ${id} (${a.street} ${a.number}, ${a.zipcode} ${a.city}).`);
   const d = await gql(Q.REMOVE_ADDRESS, { addressId: id }, { profile: ctx.profile, debug: ctx.debug });
   return { ok: true, removed: d.removeAddress?.id === id, addressId: id };
 }
@@ -642,17 +642,17 @@ export async function walletShow(args, flags, ctx) {
 export async function configCmd(verb, args, flags, ctx) {
   if (verb === 'path') return { config: configPath(), credentials: credentialsPath() };
   const cfg = loadConfig();
-  if (verb === 'list') return { defaultProfile: cfg.defaultProfile, config: { ...cfg.profiles, _meta: { redacted: true } }, note: 'los tokens no se muestran' };
+  if (verb === 'list') return { defaultProfile: cfg.defaultProfile, config: { ...cfg.profiles, _meta: { redacted: true } }, note: 'tokens are not shown' };
   if (verb === 'get') {
     const key = args[0];
-    if (!key) throw usageError('Falta la clave: config get <ruta.punto>');
+    if (!key) throw usageError('Missing key: config get <dotted.path>');
     const val = key.split('.').reduce((acc, k) => acc?.[k], cfg);
     return { key, value: val === undefined ? null : (String(key).endsWith('token') ? '***' : val) };
   }
   if (verb === 'set') {
     const [key, ...rest] = args;
-    if (!key || rest.length === 0) throw usageError('Uso: config set <clave> <valor>');
-    if (key.endsWith('token')) throw usageError('El token se gestiona con `wetaca auth login --token`.');
+    if (!key || rest.length === 0) throw usageError('Usage: config set <key> <value>');
+    if (key.endsWith('token')) throw usageError('The token is managed with `wetaca auth login --token`.');
     const value = rest.join(' ') === 'true' ? true : rest.join(' ') === 'false' ? false : rest.join(' ');
     const parts = key.split('.');
     let obj = cfg;
@@ -661,7 +661,7 @@ export async function configCmd(verb, args, flags, ctx) {
     saveConfig(cfg);
     return { ok: true, key, value };
   }
-  throw usageError(`Verbos de config: path | list | get | set`);
+  throw usageError(`Config verbs: path | list | get | set`);
 }
 
 // ---------- doctor ----------
@@ -682,19 +682,19 @@ export async function doctor(args, flags, ctx) {
     const j = await res.json();
     apiOk = res.ok && !!j.data?.__typename;
     apiDetail = `HTTP ${res.status}`;
-  } catch (e) { apiDetail = `sin conexión: ${e.cause?.code || e.message}`; }
-  push('api.wetaca.com alcanzable', apiOk, apiDetail);
+  } catch (e) { apiDetail = `no connection: ${e.cause?.code || e.message}`; }
+  push('api.wetaca.com reachable', apiOk, apiDetail);
 
   const token = getToken(ctx.profile);
-  push('sesión presente', !!token, token ? 'token configurado' : 'sin token — wetaca auth login');
+  push('session present', !!token, token ? 'token configured' : 'no token — wetaca auth login');
   if (token) {
     try {
       const d = await gql(Q.TOKEN_IS_VALID, { token }, { profile: ctx.profile, debug: ctx.debug });
-      push('token válido', d.tokenIsValid === true, `tokenIsValid=${d.tokenIsValid}`);
+      push('token valid', d.tokenIsValid === true, `tokenIsValid=${d.tokenIsValid}`);
     } catch (e) {
-      push('token válido', false, e.message);
+      push('token valid', false, e.message);
     }
   }
-  push('directorio de config', true, configDir());
+  push('config directory', true, configDir());
   return { ok: checks.every((c) => c.ok), checks };
 }

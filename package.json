@@ -23,6 +23,12 @@
     "name": "Jorge Soler Padial",
     "url": "https://github.com/gorgueugr"
   },
+  "contributors": [
+    {
+      "name": "Hermes Agent (Nous Research)",
+      "url": "https://github.com/NousResearch/hermes-agent"
+    }
+  ],
   "homepage": "https://github.com/gorgueugr/wetaca-cli#readme",
   "bugs": "https://github.com/gorgueugr/wetaca-cli/issues",
   "repository": {

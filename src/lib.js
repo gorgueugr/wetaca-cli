@@ -89,8 +89,8 @@ export function saveConfig(cfg) {
 export function getProfile(name, { create = false } = {}) {
   const cfg = loadConfig();
   name = name || cfg.defaultProfile || 'default';
-  // vista combinada: config.json (público) + credentials.json (secretos); el legacy
-  // con secretos dentro de config.json sigue leyéndose hasta que se migre
+  // combined view: config.json (public) + credentials.json (secrets); the legacy
+  // one with secrets inside config.json keeps being read until migrated
   const creds = loadCreds().profiles?.[name] || {};
   const legacy = cfg.profiles?.[name] || {};
   const p = { ...legacy, ...creds };
@@ -115,8 +115,8 @@ export function saveProfile(name, data) {
     creds.profiles = { ...(creds.profiles || {}), [name]: { ...(creds.profiles?.[name] || {}), ...sec } };
     credsDirty = true;
   }
-  // migración de config.json legacy: token/refreshToken se mueven a credentials.json;
-  // login/password se BORRAN (el CLI ya no almacena contraseñas, decisión del usuario)
+  // migration of legacy config.json: token/refreshToken move to credentials.json;
+  // login/password are DELETED (the CLI no longer stores passwords, user's decision)
   for (const [pname, p] of Object.entries(cfg.profiles || {})) {
     const legacy = SECRET_KEYS.filter((k) => p[k] != null);
     if (!legacy.length) continue;
@@ -161,30 +161,30 @@ async function rawRequest(query, variables, tok, debug) {
       body: JSON.stringify({ query, variables: variables || {} }),
     });
   } catch (e) {
-    throw new CliError(EXIT.NETWORK, `No se pudo conectar con la API de Wetaca: ${e.cause?.code || e.message}`,
+    throw new CliError(EXIT.NETWORK, `Could not connect to the Wetaca API: ${e.cause?.code || e.message}`,
       { reason: 'network', retryable: true });
   }
   if (debug) console.error(`wetaca: POST ${API_URL} -> ${res.status} (${Date.now() - started} ms)`);
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
-      const e = new CliError(EXIT.AUTH, 'La API rechazó la sesión (401/403). El token puede haber expirado.',
+      const e = new CliError(EXIT.AUTH, 'The API rejected the session (401/403). The token may have expired.',
         { reason: 'auth_rejected', retryable: false, suggested_commands: ['wetaca auth login'] });
       e.auth = true;
       throw e;
     }
-    throw new CliError(EXIT.API, `La API respondió HTTP ${res.status}`,
+    throw new CliError(EXIT.API, `The API responded with HTTP ${res.status}`,
       { reason: 'http_' + res.status, retryable: res.status >= 500 || res.status === 429 });
   }
   let body;
   try { body = await res.json(); } catch {
-    throw new CliError(EXIT.DRIFT, 'La API devolvió una respuesta no JSON (posible cambio de contrato).',
+    throw new CliError(EXIT.DRIFT, 'The API returned a non-JSON response (possible contract change).',
       { reason: 'contract_drift', retryable: false });
   }
   return body;
 }
 
-// Credencial guardada para auto-refresh: SOLO el refresh-token (cookie de 120 días).
-// La contraseña nunca se pide ni se guarda (decisión del usuario).
+// Stored credential for auto-refresh: ONLY the refresh-token (120-day cookie).
+// The password is never requested nor stored (user's decision).
 function storedRefreshToken(profile) {
   if (process.env.WETACA_REFRESH_TOKEN) return process.env.WETACA_REFRESH_TOKEN;
   const cfg = loadConfig();
@@ -193,9 +193,9 @@ function storedRefreshToken(profile) {
   return c?.refreshToken || null;
 }
 
-// Renueva el token con la cookie refresh-token (120 días) vía POST /session/refresh,
-// igual que hace la web (bundles: cookies auth-token + refresh-token, x-wetaca-session).
-// Exportada también para `auth login --refresh-token`.
+// Renews the token with the refresh-token cookie (120 days) via POST /session/refresh,
+// just like the web does (bundles: auth-token + refresh-token cookies, x-wetaca-session).
+// Also exported for `auth login --refresh-token`.
 export async function sessionRefresh(rt, profile, debug) {
   let res;
   try {
@@ -209,50 +209,50 @@ export async function sessionRefresh(rt, profile, debug) {
       },
     });
   } catch (e) {
-    throw new CliError(EXIT.NETWORK, `No se pudo conectar con la API de Wetaca: ${e.cause?.code || e.message}`,
+    throw new CliError(EXIT.NETWORK, `Could not connect to the Wetaca API: ${e.cause?.code || e.message}`,
       { reason: 'network', retryable: true });
   }
   if (res.status === 400 || res.status === 401) {
-    throw new CliError(EXIT.AUTH, 'El refresh-token no es válido (mal copiado, caducado o revocado). Cópialo de wetaca.com logueado: F12 → Application → Cookies → wetaca.com → refresh-token (valor completo).',
+    throw new CliError(EXIT.AUTH, 'The refresh-token is invalid (copied incorrectly, expired, or revoked). Copy it from wetaca.com while logged in: F12 → Application → Cookies → wetaca.com → refresh-token (full value).',
       { reason: 'refresh_token_invalid', retryable: false, suggested_commands: ['wetaca auth login --token T'] });
   }
   if (!res.ok) {
-    throw new CliError(EXIT.API, `La API respondió HTTP ${res.status} al renovar la sesión`,
+    throw new CliError(EXIT.API, `The API responded with HTTP ${res.status} while refreshing the session`,
       { reason: 'http_' + res.status, retryable: res.status >= 500 });
   }
   let j;
   try { j = await res.json(); } catch {
-    throw new CliError(EXIT.DRIFT, 'La API devolvió una respuesta no JSON al renovar la sesión.',
+    throw new CliError(EXIT.DRIFT, 'The API returned a non-JSON response while refreshing the session.',
       { reason: 'contract_drift', retryable: false });
   }
   if (!j?.token) {
-    throw new CliError(EXIT.DRIFT, 'El refresh no devolvió token (posible cambio de contrato).',
+    throw new CliError(EXIT.DRIFT, 'The refresh did not return a token (possible contract change).',
       { reason: 'contract_drift', retryable: false });
   }
   saveProfile(profile, { token: j.token });
-  // rotación: si la API emite refresh-token nuevo en Set-Cookie, lo guardamos
+  // rotation: if the API issues a new refresh-token in Set-Cookie, we save it
   const sc = res.headers.get('set-cookie');
   const m = sc && sc.match(/(?:^|,\s*)refresh-token=([^;\s]+)/);
   if (m && m[1] && m[1] !== rt) saveProfile(profile, { refreshToken: m[1] });
-  if (debug) console.error('wetaca: token renovado automáticamente (refresh-token)');
+  if (debug) console.error('wetaca: token automatically renewed (refresh-token)');
   return j.token;
 }
 
 export async function gql(query, variables, { token, profile, debug, anon = false } = {}) {
   const tok0 = token ?? getToken(profile);
   if (!tok0 && !anon) {
-    throw new CliError(EXIT.AUTH, 'No hay sesión. Ejecuta `wetaca auth login` (o define WETACA_TOKEN).',
+    throw new CliError(EXIT.AUTH, 'No session. Run `wetaca auth login` (or set WETACA_TOKEN).',
       { reason: 'auth_required', retryable: false, suggested_commands: ['wetaca auth login'] });
   }
-  // Auto-refresh: si la petición falla por sesión caducada y hay refresh-token guardado,
-  // renueva vía /session/refresh y reintenta UNA vez (solo con el token almacenado).
+  // Auto-refresh: if the request fails due to an expired session and a refresh-token is stored,
+  // renew via /session/refresh and retry ONCE (only with the stored token).
   const canRefresh = !anon && !token && !!storedRefreshToken(profile);
   const call = async (tok) => {
     const body = await rawRequest(query, variables, tok, debug);
     if (body.errors?.length) {
       const codes = body.errors.map((e) => e.extensions?.code).filter(Boolean);
       if (codes.includes('UNAUTHENTICATED')) {
-        const e = new CliError(EXIT.AUTH, 'La sesión no es válida para esta operación.',
+        const e = new CliError(EXIT.AUTH, 'The session is not valid for this operation.',
           { reason: 'auth_required', retryable: false, suggested_commands: ['wetaca auth login'] });
         e.auth = true;
         throw e;
@@ -289,9 +289,9 @@ export function fmtDate(iso) {
   if (!iso) return null;
   const d = new Date(iso);
   if (isNaN(d)) return iso;
-  const wd = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][d.getDay()];
+  const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
   const p = (n) => String(n).padStart(2, '0');
-  return `${wd} ${p(d.getDate())} ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][d.getMonth()]} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return `${wd} ${p(d.getDate())} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 // ---------- output ----------
@@ -321,7 +321,7 @@ function printPretty(data, indent = '') {
       console.log(indent + k + ':');
       printPretty(v, indent + '  ');
     } else {
-      // precios en céntimos → euros en modo pretty
+      // prices in cents → euros in pretty mode
       const isCents = /price|toPay|balance/i.test(k) && typeof v === 'number' && v > 100;
       console.log(indent + `${k}: ${isCents ? cents(v) : v}`);
     }
