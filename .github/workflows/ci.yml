@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax check
+        run: node --check bin/wetaca.js && node --check src/lib.js && node --check src/commands.js && node --check src/guide.js
+      - name: Smoke tests
+        run: |
+          node bin/wetaca.js --version
+          node bin/wetaca.js --help > /dev/null
+          node bin/wetaca.js skills get wetaca-usage > /dev/null
+          node -e "
+            import('./src/commands.js').then(async (C) => {
+              const assert = (await import('node:assert')).strict;
+              // cookie parser: Netscape with #HttpOnly_ prefix
+              const netscape = '# Netscape HTTP Cookie File\n#HttpOnly_.wetaca.com\tTRUE\t/\tTRUE\t1893456000\trefresh-token\tRT-NETSCAPE-VAL\n';
+              assert.equal(C.extractRefreshToken(netscape), 'RT-NETSCAPE-VAL');
+              // Cookie-Editor JSON
+              const json = JSON.stringify([{ name: 'refresh-token', value: 'RT-JSON-VAL', domain: '.wetaca.com' }]);
+              assert.equal(C.extractRefreshToken(json), 'RT-JSON-VAL');
+              // Cookie header
+              assert.equal(C.extractRefreshToken('Cookie: auth-token=eyJx; refresh-token=RT-HEADER-VAL'), 'RT-HEADER-VAL');
+              // bare value
+              assert.equal(C.extractRefreshToken('RT-BARE-VAL=='), 'RT-BARE-VAL==');
+              // not a wetaca cookie
+              assert.equal(C.extractRefreshToken(JSON.stringify([{ name: 'other', value: 'x', domain: '.example.com' }])), null);
+              console.log('parser tests passed');
+            });
+          "
+      - name: No secrets or PII in package
+        run: |
+          npm pack --dry-run > /dev/null
+          ! grep -rE "solerpadial|refresh-token=[A-Za-z0-9_-]{20,}" bin src docs README.md
