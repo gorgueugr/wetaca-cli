@@ -127,13 +127,8 @@ export async function gql(query, variables, { token, profile, debug, anon = fals
     throw new CliError(EXIT.API, body.errors.map((e) => e.message).join('; '),
       { reason: 'graphql_error', retryable: false, details: body.errors });
   }
-  // contract drift: a null top-level field with no errors usually means schema drift
-  for (const [k, v] of Object.entries(body.data || {})) {
-    if (v === null) {
-      throw new CliError(EXIT.DRIFT, `La API devolvió null en '${k}' (¿contrato cambiado o recurso inexistente?).`,
-        { reason: 'null_field', retryable: false });
-    }
-  }
+  // OJO: los campos top-level null son NORMALES en esta API (p. ej. nextPaymentPendingOrder
+  // null = "no hay pagos pendientes"); no implican deriva de contrato. Cada comando decide.
   return body.data;
 }
 
