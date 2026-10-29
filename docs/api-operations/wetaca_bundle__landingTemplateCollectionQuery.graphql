@@ -1,0 +1,157 @@
+query landingTemplateCollectionQuery($slug: String!, $preview: Boolean!) {
+  landingTemplateCollection(where: {slug: $slug}, preview: $preview) {
+    items {
+      slug
+      floatingBar
+      contentCollection {
+        items {
+          ... on Hero {
+            __typename
+            bgColor
+            image
+            imageS
+            title
+            subtitle
+            primarySticker
+            secondarySticker
+          }
+          ... on HeroWide {
+            __typename
+            image
+            imageS
+            title
+            subtitle
+            bullets
+            greenText
+            primarySticker
+            secondarySticker
+          }
+          ... on HeroWideDiscount {
+            __typename
+            image
+            imageS
+            bgColor
+            title
+            subtitle
+            greenText
+            primarySticker
+            secondarySticker
+          }
+          ... on HeroWidePromo {
+            __typename
+            image
+            imageS
+            title
+            subtitle
+            greenText
+            primarySticker
+          }
+          ... on HeroWideStretched {
+            __typename
+            image
+            imageS
+            title
+            subtitle
+            primarySticker
+          }
+          ... on TitleA {
+            __typename
+            bgColor
+            title
+            content
+            textType
+            gap
+            gapS
+          }
+          ... on Info4Columns {
+            __typename
+            bgColor
+            items
+            simplified
+          }
+          ... on PromoBanner {
+            __typename
+            preffix
+            crossPrice
+            price
+            thinPrice
+            suffix
+            animationDuration
+            bgColor
+          }
+          ... on RecurrencePromoBanner {
+            __typename
+            firstDiscount
+            firstMaxDiscount
+            secondDiscount
+            secondMaxDiscount
+          }
+          ... on TimerBanner {
+            __typename
+            text
+            textS
+          }
+          ... on HeroBanner {
+            __typename
+            image
+            imageS
+            title
+            subtitle
+            greenText
+            bigText
+            smallText
+            bottomText
+          }
+          ... on HeroBannerCrossed {
+            __typename
+            image
+            imageS
+            title
+            subtitle
+            greenText
+            upperText
+            crossPrice
+            price
+            suffix
+          }
+          ... on HeroBannerRecurrent {
+            __typename
+            image
+            imageS
+            title
+            subtitle
+            greenText
+            preffix
+            crossPrice
+            price
+            suffix
+            currentText
+            recurrenceText
+          }
+          ... on HeroFull {
+            __typename
+            image
+            imageS
+            title
+            bullets
+          }
+          ... on Info1Column {
+            __typename
+            bgColor
+            image
+            imageS
+            title
+            subtitle
+            imgPos
+            buttonText
+          }
+          ... on TitleGreen {
+            __typename
+            bgColor
+            content
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+query subscriptionAccountIntentPricingVoucher($subscriptionAccountInput: SubscriptionAccountInputGraphWithoutPayments!, $profiles: [SubscriptionProfileInputGraph!]!, $voucherCode: String) {
+  subscriptionAccountIntentPricing(subscriptionAccountInput: $subscriptionAccountInput, profiles: $profiles, voucherCode: $voucherCode) {
+    partialIntentPrices {
+      appliedVouchers {
+        code
+      }
+    }
+  }
+}

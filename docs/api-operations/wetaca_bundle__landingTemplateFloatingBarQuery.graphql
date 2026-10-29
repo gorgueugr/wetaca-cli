@@ -1,0 +1,8 @@
+query landingTemplateFloatingBarQuery($slug: String!, $preview: Boolean!) {
+  landingTemplateCollection(where: {slug: $slug}, preview: $preview) {
+    items {
+      slug
+      floatingBar
+    }
+  }
+}

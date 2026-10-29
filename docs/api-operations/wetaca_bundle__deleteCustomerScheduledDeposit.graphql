@@ -1,0 +1,3 @@
+mutation deleteCustomerScheduledDeposit($walletScheduledDepositId: Int!) {
+  deleteCustomerScheduledDeposit(walletScheduledDepositId: $walletScheduledDepositId)
+}

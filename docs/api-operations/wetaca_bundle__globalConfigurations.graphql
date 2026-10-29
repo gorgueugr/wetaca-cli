@@ -1,0 +1,10 @@
+query globalConfigurations {
+  completeMealCategories
+  tokensConfiguration {
+    secondsBeforeRefreshingSessionToken
+  }
+  subscriptionCategoriesConfiguration {
+    nutritionAvailableCategories
+    base
+  }
+}

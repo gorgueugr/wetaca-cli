@@ -1,0 +1,20 @@
+query userSessionSubscription {
+  subscriptionAccountByCustomer {
+    id
+    isActive
+    dateCreated
+    subscriptionSource
+    delivery {
+      address {
+        zipcode
+      }
+    }
+    subscriptionAccountPricing {
+      salesPlan {
+        packageOption {
+          index
+        }
+      }
+    }
+  }
+}

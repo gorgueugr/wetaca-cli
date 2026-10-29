@@ -1,0 +1,63 @@
+query pendingPaymentOrderById($id: ID!) {
+  pendingPaymentOrderById(id: $id) {
+    pendingPaymentOrder {
+      canChange
+      delivery {
+        option {
+          id: start
+          start
+          end
+          price
+          configurationDate {
+            start
+            end
+          }
+        }
+      }
+      voucher {
+        code
+        discount
+      }
+      vouchers {
+        code
+        tagNames
+        appliedDiscount
+        discount {
+          price
+          percent
+        }
+      }
+      salesPlanDiscount {
+        appliedDiscount
+        discount {
+          price
+          percent
+        }
+      }
+      price
+      products {
+        id
+        quantity
+        name
+        slug
+        subscriptionPrice
+        price
+        category {
+          _id
+          id: slug
+          slug
+          subscriptionPrice
+        }
+        tags
+      }
+      subscriptionAccountId
+      pricingInfo {
+        delivery {
+          shippingPrice
+        }
+      }
+    }
+    alreadyConfirmed
+    isPayablePendingPaymentOrder
+  }
+}

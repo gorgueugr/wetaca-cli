@@ -1,0 +1,6 @@
+mutation updateSubscriptionProfileCharacter($profileId: ModelId!, $character: Character!) {
+  updateSubscriptionProfileCharacter(character: $character, profileId: $profileId) {
+    id
+    character
+  }
+}

@@ -1,0 +1,9 @@
+mutation addProductsToProfileWhitelist($profileId: ModelId!, $productsIdsWhitelisted: [Int!]!) {
+  addProductsToSubscriptionProfileWhitelist(profileId: $profileId, productIds: $productsIdsWhitelisted) {
+    id
+    name
+    email
+    isActive
+    productsWhitelist
+  }
+}

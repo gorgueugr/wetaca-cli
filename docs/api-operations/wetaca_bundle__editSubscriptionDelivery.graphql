@@ -1,0 +1,5 @@
+mutation editSubscriptionDelivery($subscriptionDeliveryInput: EditSubscriptionGraph!, $checkChargingSuggestion: Boolean) {
+  editDeliveryAccountInfo(subscriptionDeliveryInput: $subscriptionDeliveryInput, checkChargingSuggestion: $checkChargingSuggestion) {
+    id
+  }
+}

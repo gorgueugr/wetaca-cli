@@ -1,0 +1,10 @@
+{
+  "name": "wetaca-cli",
+  "version": "0.1.0",
+  "description": "Gestiona tu Wetaca desde el terminal: suscripción, menú semanal, entregas y pedidos. Pensado para personas y para agentes IA.",
+  "type": "module",
+  "bin": { "wetaca": "bin/wetaca.js" },
+  "engines": { "node": ">=18" },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/GodGMN/wetaca-cli" }
+}

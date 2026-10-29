@@ -1,0 +1,190 @@
+query nextDeliveries {
+  nextSuggestion {
+    _id
+    isBeingCharged
+    currentOrderStreakProgress
+    skip
+    isOptIn
+    viewedInEditableState
+    appliedVoucher {
+      appliedDiscount
+      code
+    }
+    suggestionPricing {
+      toPay
+      salesPlan {
+        minProfilesPriceValidation {
+          remainingAmount
+        }
+      }
+    }
+  }
+  subscriptionAccount: subscriptionAccountByCustomer {
+    _id
+    isActive
+    pausedUntil
+    dateCreated
+    nextSuggestionSkipped
+    profiles {
+      _id
+      productMap {
+        id
+        day
+      }
+      products {
+        allergens
+        category {
+          _id
+          description
+          name
+          order
+          slug
+          subscriptionPrice
+        }
+        ingredients
+        nutritionFacts {
+          energy
+          fiber
+          hydrates
+          proteins
+          salt
+          saturatedFat
+          sugars
+          totalFat
+        }
+        price
+        slug
+        tags
+      }
+      ...SubscriptionProfiles
+      customerId
+      dateCreated
+      dateUpdated
+      productsBlacklist
+      productsWhitelist
+      subscriptionAccountId
+      allergens {
+        id
+        name
+      }
+    }
+    delivery {
+      type
+      option {
+        id
+        start
+        end
+        price
+        configurationDate {
+          start
+          end
+        }
+      }
+      options {
+        id
+        day
+        start
+        end
+        price
+        configurationDate {
+          start
+          end
+        }
+        exception {
+          start
+          end
+          from {
+            year
+            month
+            dayOfMonth
+          }
+        }
+      }
+      exceptions {
+        day
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+      address {
+        id
+        street
+        number
+        floor
+        city
+        zipcode
+        phone
+        firstname
+        lastname
+      }
+    }
+    isOptInMutable
+    optInSuggestions
+    subscriptionAccountPricing {
+      toPay
+      shipping
+      salesPlan {
+        minProfilesPriceValidation {
+          remainingAmount
+        }
+      }
+    }
+    recurringSubscriptionType {
+      type
+      dishesVariety
+    }
+  }
+}
+
+fragment SubscriptionProfiles on SubscriptionProfileGraph {
+  id
+  isActive
+  name
+  email
+  price
+  productMap {
+    quantity
+  }
+  products {
+    id
+    name
+    quantity
+    features
+    isPromoted
+  }
+  allergens {
+    id
+    name
+  }
+  otherAllergens
+  diet
+  spicyLevel
+  nutrition {
+    goal
+    preferences {
+      energy {
+        min
+        max
+      }
+      proteins
+      hydrates
+      fats
+    }
+  }
+  dislikes {
+    id
+    flavor
+    texture
+    name
+  }
+  otherDislikes {
+    name
+    flavor
+    texture
+  }
+  character
+}

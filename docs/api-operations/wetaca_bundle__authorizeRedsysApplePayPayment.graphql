@@ -1,0 +1,16 @@
+mutation authorizeRedsysApplePayPayment($newPaymentIntentionRequest: SimplePaymentIntentionInput!, $paymentAuthorization: String!, $paymentInterfaceBrowser: PaymentInterfaceBrowserInput!, $paymentReferenceAlternative: String!, $paymentMethodInfo: String) {
+  authorizeRedsysApplePayPayment(newPaymentIntentionRequest: $newPaymentIntentionRequest, paymentAuthorization: $paymentAuthorization, paymentInterfaceBrowser: $paymentInterfaceBrowser, paymentReferenceAlternative: $paymentReferenceAlternative, paymentMethodInfo: $paymentMethodInfo) {
+    ok
+    error
+    storedPaymentToken
+    redsysAuthorizationResponse {
+      isChallenge
+      PAReq
+      MD
+      acsURL
+      creq
+      notificationUrl
+      protocolVersion
+    }
+  }
+}

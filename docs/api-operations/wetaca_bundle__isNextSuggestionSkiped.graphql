@@ -1,0 +1,6 @@
+query isNextSuggestionSkiped {
+  nextSuggestion {
+    _id
+    skip
+  }
+}

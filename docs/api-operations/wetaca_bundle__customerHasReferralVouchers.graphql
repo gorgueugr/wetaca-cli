@@ -1,0 +1,11 @@
+query customerHasReferralVouchers($limit: Int, $offset: Int, $skipExpired: Boolean, $skipFuture: Boolean) {
+  vouchers(limit: $limit, offset: $offset, skipExpired: $skipExpired, skipFuture: $skipFuture) {
+    referredCustomer
+    isReferral
+    code
+  }
+  customer {
+    id
+    referralCode
+  }
+}

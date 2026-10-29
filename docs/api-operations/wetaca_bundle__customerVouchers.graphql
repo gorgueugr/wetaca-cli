@@ -1,0 +1,224 @@
+query customerVouchers($limit: Int, $offset: Int, $skipExpired: Boolean, $skipFuture: Boolean) {
+  vouchers(limit: $limit, offset: $offset, skipExpired: $skipExpired, skipFuture: $skipFuture) {
+    code
+    discount {
+      price
+      percent
+      maximum
+    }
+    subscriptionDiscount {
+      price
+      percent
+      maximum
+    }
+    dateTo
+    restrict {
+      quantityPerUser
+      maximumAmount
+      minimumAmount
+      firstSubscription
+    }
+    isReferral
+    referredCustomer
+    remainingUses
+  }
+  nextSuggestion {
+    subscriptionAccountId
+    appliedVoucher {
+      code
+      tagNames
+      appliedDiscount
+      discount {
+        price
+        percent
+      }
+    }
+    billingAddress {
+      id
+      name
+      lastname
+      country
+      vat
+      street
+      number
+      floor
+      zipcode
+      city
+    }
+    delivery {
+      address {
+        id
+        firstname
+        lastname
+        street
+        number
+        zipcode
+        city
+        phone
+        floor
+        notes
+      }
+      notes
+      option {
+        start
+        end
+        price
+        customizedPrice
+        custom
+        exception {
+          start
+          end
+          from {
+            year
+            month
+            dayOfMonth
+          }
+        }
+      }
+    }
+    id
+    pausedAt
+    skip
+    skipVoucher
+    validUntil
+    salesPlanId
+    hasDeliveryChanges
+    suggestionPricing {
+      profiles {
+        id
+        transactional
+        subscription
+        toPay
+      }
+      profilesTotal {
+        transactional
+        subscription
+        toPay
+      }
+      shipping
+      vouchers
+      subscription {
+        subtotal
+        total
+      }
+      transactional {
+        subtotal
+        total
+      }
+      toPay
+      salesPlan {
+        _id
+        id
+        minProfilesPriceValidation {
+          minPrice
+          result
+          remainingAmount
+        }
+        packageOption {
+          index
+          categoryRestrictions {
+            categories
+            restriction {
+              min
+              max
+            }
+          }
+          shippingSubscriptionDiscount {
+            assumed
+          }
+          baseCategory
+          baseCategoryPrice
+        }
+        packageValidation {
+          result
+          restrictions {
+            categories
+            result
+            remaining
+          }
+        }
+        upselling {
+          packageOption {
+            index
+            categoryRestrictions {
+              categories
+              restriction {
+                min
+                max
+              }
+            }
+            shippingSubscriptionDiscount {
+              assumed
+            }
+            baseCategory
+            baseCategoryPrice
+          }
+          packageValidation {
+            result
+            restrictions {
+              categories
+              result
+              remaining
+            }
+          }
+        }
+      }
+      appliedVouchers {
+        code
+        tagNames
+        appliedDiscount
+        discount {
+          price
+          percent
+        }
+      }
+      voucherApplyErrors {
+        ... on ApplyVoucherValidationError {
+          errorCode
+          description
+          validationDetails {
+            validationIssue
+            voucher {
+              code
+              restrict {
+                maximumAmount
+                minimumAmount
+                firstOrder
+              }
+            }
+          }
+        }
+        ... on GraphError {
+          errorCode
+        }
+      }
+      skippedProfiles {
+        id
+        transactional
+        subscription
+        toPay
+      }
+    }
+    accountIsActive
+    profileSuggestions {
+      id
+      products {
+        id
+        category {
+          _id
+          slug
+          subscriptionPrice
+        }
+        name
+        slug
+        price
+        quantity
+        subscriptionPrice
+      }
+      profileId
+      maxPriceWithoutChanges
+      skip
+      hasChanges
+    }
+  }
+}

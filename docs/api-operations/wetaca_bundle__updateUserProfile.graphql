@@ -1,0 +1,10 @@
+mutation updateUserProfile($userProfile: UserProfileInput!) {
+  updateUserProfile(userProfile: $userProfile) {
+    id
+    firstname
+    lastname
+    birthdate
+    newsletter
+    pushNotifications
+  }
+}

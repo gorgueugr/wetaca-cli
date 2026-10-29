@@ -1,0 +1,6 @@
+mutation resumeSuggestionProfile($profileSuggestionId: ModelId!) {
+  resumed: resumeSuggestionProfile(profileSuggestionId: $profileSuggestionId) {
+    id
+    skip
+  }
+}

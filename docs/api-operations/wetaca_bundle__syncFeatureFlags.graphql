@@ -1,0 +1,7 @@
+mutation syncFeatureFlags($featureFlags: [FeatureFlagInput!]!) {
+  syncFeatureFlags(featureFlags: $featureFlags) {
+    slug
+    value
+    isPersisted
+  }
+}

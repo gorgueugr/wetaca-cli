@@ -1,0 +1,26 @@
+query subscriptionIntentMenuProductsPricing($menuId: String!, $segmentId: ModelId) {
+  menuProductsSubscriptionIntentPricing(menuId: $menuId, segmentId: $segmentId) {
+    salesPlanId
+    salesPlanPrices {
+      default {
+        productId
+        productPrice {
+          price
+          categoryPrice
+          subscriptionPrice
+        }
+      }
+      packages {
+        packageOptionIndex
+        productsPrices {
+          productId
+          productPrice {
+            price
+            categoryPrice
+            subscriptionPrice
+          }
+        }
+      }
+    }
+  }
+}

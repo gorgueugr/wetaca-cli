@@ -1,0 +1,473 @@
+query pendingDeliveryOrders {
+  nextSuggestions {
+    ...SuggestionWithProfilesFragment
+    productStatistics(maxCategories: 3) {
+      byIngredientCategory {
+        dishesCountByCategory {
+          MEAT
+          SPOON
+          FISH
+          RICE_NOODLES
+          PASTA_POTATO_GRATIN
+          CHICKEN_TURKEY
+          VEGETABLE_VEGAN
+          VEGETABLE_PROTEIN
+          CREAM_SOUP
+          VEGETABLES
+        }
+        dishesWithVegetables
+      }
+      byOrdersInLastYear {
+        new
+        alreadyOrdered
+      }
+    }
+  }
+  nextDeliveries {
+    ...PendingOrderFragment
+  }
+  nextPaymentPendingOrder {
+    ...OrderFragment
+  }
+  profilesByCustomer {
+    id
+    name
+  }
+}
+
+fragment OrderFragment on OrderGraph {
+  _id
+  dateCreated
+  state
+  id
+  canChange
+  billingAddress {
+    id
+    name
+    lastname
+    country
+    vat
+    street
+    number
+    floor
+    zipcode
+    city
+  }
+  delivery {
+    type
+    address {
+      id
+      firstname
+      lastname
+      street
+      number
+      zipcode
+      city
+      phone
+      floor
+      notes
+    }
+    option {
+      id
+      start
+      end
+      price
+      customizedPrice
+      custom
+      configurationDate {
+        start
+        end
+      }
+    }
+    options {
+      id
+      day
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+  }
+  products {
+    id
+    slug
+    name
+    price
+    subscriptionPrice
+    category {
+      slug
+      subscriptionPrice
+    }
+    tags
+    ingredientsBreakdown
+    allergens
+    quantity
+    ingredients
+    nutritionFacts {
+      energy
+      totalFat
+      saturatedFat
+      proteins
+      hydrates
+      sugars
+      fiber
+      salt
+    }
+  }
+  profilesProductMap {
+    name
+    products {
+      id
+      quantity
+      day
+    }
+  }
+  price
+  reference
+  invoiceUrl
+  subscriptionAccountId
+  vouchers {
+    code
+    discount {
+      price
+      percent
+      maximum
+    }
+    appliedDiscount
+  }
+  salesPlanDiscount {
+    discount {
+      price
+      percent
+      maximum
+    }
+    appliedDiscount
+  }
+  pricingInfo {
+    delivery {
+      shippingPrice
+    }
+  }
+}
+
+fragment SuggestionWithProfilesFragment on SuggestionWithProfilesGraph {
+  _id
+  customerId
+  dateCreated
+  dateUpdated
+  subscriptionAccountId
+  viewedInEditableState
+  appliedVoucher {
+    code
+    tagNames
+    appliedDiscount
+    discount {
+      price
+      percent
+    }
+  }
+  billingAddress {
+    _id
+    id
+    customerId
+    name
+    lastname
+    country
+    vat
+    street
+    number
+    floor
+    zipcode
+    city
+  }
+  deliveryConfigurationId
+  delivery {
+    type
+    address {
+      id
+      firstname
+      lastname
+      street
+      number
+      zipcode
+      city
+      phone
+      floor
+      notes
+    }
+    notes
+    option {
+      id
+      start
+      end
+      price
+      customizedPrice
+      custom
+      configurationDate {
+        start
+        end
+      }
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    options {
+      id
+      day
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    exceptions {
+      day
+      start
+      end
+      from {
+        year
+        month
+        dayOfMonth
+      }
+    }
+  }
+  id
+  pausedAt
+  skip
+  skipVoucher
+  validUntil
+  salesPlanId
+  hasDeliveryChanges
+  suggestionPricing {
+    shippingBreakdown {
+      customDifference
+      toPay
+      discount
+    }
+    profiles {
+      _id
+      profileId
+      id
+      transactional
+      subscription
+      toPay
+    }
+    profilesTotal {
+      transactional
+      subscription
+      toPay
+    }
+    shipping
+    salesPlanDiscount
+    vouchers
+    subscription {
+      subtotal
+      total
+    }
+    transactional {
+      subtotal
+      total
+    }
+    toPay
+    salesPlan {
+      _id
+      id
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+      packageOption {
+        index
+        categoryRestrictions {
+          categories
+          restriction {
+            min
+            max
+          }
+        }
+        shippingSubscriptionDiscount {
+          assumed
+        }
+        baseCategory
+        baseCategoryPrice
+      }
+      packageValidation {
+        result
+        restrictions {
+          categories
+          result
+          remaining
+        }
+      }
+      upselling {
+        packageOption {
+          index
+          categoryRestrictions {
+            categories
+            restriction {
+              min
+              max
+            }
+          }
+          shippingSubscriptionDiscount {
+            assumed
+          }
+          baseCategory
+          baseCategoryPrice
+        }
+        packageValidation {
+          result
+          restrictions {
+            categories
+            result
+            remaining
+          }
+        }
+      }
+    }
+    appliedSalesPlanDiscount {
+      appliedDiscount
+      discount {
+        price
+        percent
+      }
+    }
+    appliedVouchers {
+      code
+      tagNames
+      appliedDiscount
+      discount {
+        price
+        percent
+      }
+    }
+    voucherApplyErrors {
+      ... on ApplyVoucherValidationError {
+        errorCode
+        description
+        validationDetails {
+          validationIssue
+          voucher {
+            code
+            restrict {
+              maximumAmount
+              minimumAmount
+              firstOrder
+            }
+          }
+        }
+      }
+      ... on GraphError {
+        errorCode
+      }
+    }
+    skippedProfiles {
+      _id
+      id
+      profileId
+      transactional
+      subscription
+      toPay
+    }
+  }
+  accountIsActive
+  currentOrderStreakProgress
+  profileSuggestions {
+    _id
+    id
+    suggestionId
+    dateCreated
+    dateUpdated
+    productMap {
+      id
+      quantity
+      day
+    }
+    products {
+      id
+      category {
+        _id
+        description
+        name
+        order
+        slug
+        subscriptionPrice
+      }
+      name
+      slug
+      price
+      quantity
+      subscriptionPrice
+      allergens
+      ingredients
+      isPromoted
+      speciality
+      isNew
+      weight
+      nutritionFacts {
+        energy
+        fiber
+        hydrates
+        proteins
+        salt
+        saturatedFat
+        sugars
+        totalFat
+      }
+      tags
+      specialTemplate
+    }
+    profileId
+    maxPriceWithoutChanges
+    skip
+    hasChanges
+    validUntil
+  }
+  isOptIn
+  isBeingCharged
+  menuMetadata {
+    id
+    dateFrom
+    dateTo
+    week
+    year
+  }
+}
+
+fragment PendingOrderFragment on PendingOrderGraph {
+  order {
+    ...OrderFragment
+  }
+  validUntil
+  skip
+}

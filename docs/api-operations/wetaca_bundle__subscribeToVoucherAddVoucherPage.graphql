@@ -1,0 +1,6 @@
+mutation subscribeToVoucherAddVoucherPage($code: String!, $deviceFingerprint: String) {
+  subscribeToVoucher(code: $code, deviceFingerprint: $deviceFingerprint) {
+    code
+    tagNames
+  }
+}

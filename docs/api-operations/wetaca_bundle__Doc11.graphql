@@ -1,0 +1,9 @@
+fragment PauseWindow on SubscriptionAccountGraphWithProfiles {
+  delivery {
+    type
+    option {
+      price
+      start
+    }
+  }
+}

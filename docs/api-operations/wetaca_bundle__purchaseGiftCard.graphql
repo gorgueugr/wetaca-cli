@@ -1,0 +1,10 @@
+mutation purchaseGiftCard($amount: Int!, $paymentMethodId: ModelId!) {
+  purchaseGiftCard(amount: $amount, paymentMethodId: $paymentMethodId) {
+    ok
+    error
+    giftCard {
+      code
+      amount
+    }
+  }
+}

@@ -1,0 +1,75 @@
+query segmentBySlug($slug: String) {
+  getSegmentBySlug(slug: $slug) {
+    _id
+    dateCreated
+    dateUpdated
+    name
+    slug
+    description
+    subscription {
+      enabled
+      optInSuggestions
+      isOptInMutable
+      disableProfileMaxPriceLimitation
+      invalidateUseOfPublicVouchers
+      allowMultiprofile
+      noPaymentMethodRequired
+      dnpProductsRatioValidationEnabled
+    }
+    transactional {
+      enabled
+      invalidateUseOfPublicVouchers
+    }
+    validations {
+      ignoreDuplicatedPhones
+    }
+    tag
+    targetRules {
+      priority
+    }
+    allowReferralBenefits
+    entryDeliveryConfiguration {
+      _id
+      price
+      name
+      type
+      address {
+        id
+        street
+        number
+        floor
+        city
+        zipcode
+        firstname
+        lastname
+        phone
+      }
+    }
+    activeStandardSalesPlan {
+      _id
+      id
+      name
+      description
+      specification {
+        minPrice
+      }
+      applications {
+        active
+        applicableTo
+      }
+    }
+    activeEntrySalesPlan {
+      _id
+      id
+      name
+      description
+      specification {
+        minPrice
+      }
+      applications {
+        active
+        applicableTo
+      }
+    }
+  }
+}

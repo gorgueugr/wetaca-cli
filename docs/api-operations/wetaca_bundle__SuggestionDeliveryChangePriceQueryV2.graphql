@@ -1,0 +1,5 @@
+query SuggestionDeliveryChangePriceQueryV2($id: ModelId!, $deliveryConfigurationChange: DeliveryConfigurationInput!) {
+  suggestionChangePricing(suggestionId: $id, deliveryConfigurationChange: $deliveryConfigurationChange) {
+    shipping
+  }
+}

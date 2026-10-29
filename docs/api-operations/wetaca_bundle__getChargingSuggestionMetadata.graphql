@@ -1,0 +1,6 @@
+query getChargingSuggestionMetadata($suggestionId: ModelId) {
+  getChargingSuggestionMetadata(suggestionId: $suggestionId) {
+    suggestionIsBeingCharged
+    isChargingInterval
+  }
+}

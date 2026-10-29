@@ -1,0 +1,39 @@
+fragment SubscriptionEditDelivery on SubscriptionAccountGraphWithProfiles {
+  id
+  delivery {
+    option {
+      id
+      start
+      end
+      custom
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+      configurationDate {
+        start
+        end
+      }
+    }
+    address {
+      id
+      street
+      number
+      floor
+      city
+      zipcode
+      phone
+      firstname
+      lastname
+      notes
+    }
+  }
+  subscriptionAccountPricing {
+    shipping
+  }
+}

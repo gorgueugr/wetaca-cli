@@ -1,0 +1,3 @@
+mutation SaveWeeklySurveyStep($input: WeeklySurveyStepInput!) {
+  saveWeeklySurveyStep(input: $input)
+}

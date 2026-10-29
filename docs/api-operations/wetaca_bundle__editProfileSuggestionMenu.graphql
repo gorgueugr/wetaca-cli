@@ -1,0 +1,9 @@
+mutation editProfileSuggestionMenu($profileSuggestionId: ModelId!, $productsInput: [OrderProductMapGraph!]!, $resumeAccountSuggestion: Boolean) {
+  editProfileSuggestionProducts(profileSuggestionId: $profileSuggestionId, productsInput: $productsInput, resumeAccountSuggestion: $resumeAccountSuggestion) {
+    products {
+      id
+      quantity
+      nutrition
+    }
+  }
+}

@@ -1,0 +1,506 @@
+query myDetailsAccountWithProfiles {
+  subscriptionAccountByCustomer {
+    id
+    isActive
+    pausedUntil
+    optInSuggestions
+    isOptInMutable
+    payments {
+      reference
+    }
+    profiles {
+      id
+      name
+      price
+      productMap {
+        quantity
+      }
+      ...SubscriptionProfiles
+      ...SubscriptionProfileDetails
+      ...SubscriptionProfilesTastes
+    }
+    subscriptionAccountPricing {
+      toPay
+      salesPlan {
+        minProfilesPriceValidation {
+          minPrice
+          result
+          remainingAmount
+        }
+        packageOption {
+          index
+        }
+      }
+    }
+    ...SubscriptionSummary
+    ...SubscriptionEditDelivery
+    ...BillingAddressSection
+    ...SubscriptionAccountProfileDetails
+  }
+  nextSuggestion {
+    id
+    skip
+    suggestionPricing {
+      toPay
+    }
+    isBeingCharged
+    currentOrderStreakProgress
+    ...SubscriptionSummarySuggestion
+    ...ProfileSelectorForSuggestionEditNextSuggestion
+    ...MyDetailsMenuSuggestion
+  }
+}
+
+fragment SubscriptionProfiles on SubscriptionProfileGraph {
+  id
+  isActive
+  name
+  email
+  price
+  productMap {
+    quantity
+  }
+  products {
+    id
+    name
+    quantity
+    features
+    isPromoted
+  }
+  allergens {
+    id
+    name
+  }
+  otherAllergens
+  diet
+  spicyLevel
+  nutrition {
+    goal
+    preferences {
+      energy {
+        min
+        max
+      }
+      proteins
+      hydrates
+      fats
+    }
+  }
+  dislikes {
+    id
+    flavor
+    texture
+    name
+  }
+  otherDislikes {
+    name
+    flavor
+    texture
+  }
+  character
+}
+
+fragment SubscriptionProfileDetails on SubscriptionProfileGraph {
+  _id
+  id
+  isActive
+  name
+  email
+  price
+  productMap {
+    id
+    quantity
+    day
+  }
+  products {
+    id
+    name
+    quantity
+  }
+  allergens {
+    id
+    name
+  }
+  otherAllergens
+  diet
+  spicyLevel
+  dislikes {
+    id
+    flavor
+    texture
+    name
+  }
+  otherDislikes {
+    name
+    flavor
+    texture
+  }
+}
+
+fragment SubscriptionProfilesTastes on SubscriptionProfileGraph {
+  id
+  isActive
+  name
+  email
+  price
+  productMap {
+    quantity
+  }
+  products {
+    id
+    name
+    quantity
+  }
+  allergens {
+    id
+    name
+  }
+  otherAllergens
+  diet
+  spicyLevel
+  dislikes {
+    name
+    id
+    flavor
+    texture
+  }
+  otherDislikes {
+    name
+    flavor
+    texture
+  }
+}
+
+fragment SubscriptionSummary on SubscriptionAccountGraphWithProfiles {
+  _id
+  id
+  isActive
+  pausedUntil
+  profiles {
+    id
+    isActive
+    productMap {
+      id
+      quantity
+      day
+    }
+  }
+  delivery {
+    type
+    option {
+      id
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+    }
+    options {
+      id
+      day
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    exceptions {
+      day
+      start
+      end
+      from {
+        year
+        month
+        dayOfMonth
+      }
+    }
+    address {
+      id
+      street
+      number
+      floor
+      city
+      zipcode
+      phone
+      firstname
+      lastname
+    }
+  }
+  payments {
+    reference
+    provider
+  }
+  nextSuggestionSkipped
+  subscriptionAccountPricing {
+    salesPlanDiscount
+    subscription {
+      subtotal
+    }
+    profilesTotal {
+      subscription
+    }
+    salesPlan {
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+    }
+  }
+  isOptInMutable
+  optInSuggestions
+}
+
+fragment SubscriptionEditDelivery on SubscriptionAccountGraphWithProfiles {
+  id
+  delivery {
+    option {
+      id
+      start
+      end
+      custom
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+      configurationDate {
+        start
+        end
+      }
+    }
+    address {
+      id
+      street
+      number
+      floor
+      city
+      zipcode
+      phone
+      firstname
+      lastname
+      notes
+    }
+  }
+  subscriptionAccountPricing {
+    shipping
+  }
+}
+
+fragment BillingAddressSection on SubscriptionAccountGraphWithProfiles {
+  billingAddress {
+    id
+    name
+    lastname
+    country
+    vat
+    street
+    number
+    floor
+    zipcode
+    city
+  }
+}
+
+fragment SubscriptionAccountProfileDetails on SubscriptionAccountGraphWithProfiles {
+  _id
+  delivery {
+    type
+    address {
+      id
+      street
+      number
+      floor
+      city
+      zipcode
+      firstname
+      lastname
+      phone
+    }
+    option {
+      id
+      start
+      end
+      price
+      custom
+      customizedPrice
+      configurationDate {
+        start
+        end
+      }
+    }
+    options {
+      id
+      day
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+    }
+  }
+}
+
+fragment SubscriptionSummarySuggestion on SuggestionWithProfilesGraph {
+  _id
+  skip
+  validUntil
+  deliveryConfigurationId
+  delivery {
+    type
+    option {
+      id
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+    }
+    options {
+      id
+      day
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    exceptions {
+      day
+      start
+      end
+      from {
+        year
+        month
+        dayOfMonth
+      }
+    }
+    address {
+      id
+      street
+      number
+      floor
+      city
+      zipcode
+      phone
+      firstname
+      lastname
+    }
+  }
+  billingAddress {
+    id
+    name
+    lastname
+    country
+    vat
+    street
+    number
+    floor
+    zipcode
+    city
+  }
+  profileSuggestions {
+    _id
+    skip
+    productMap {
+      id
+      quantity
+      day
+    }
+    products {
+      id
+      quantity
+    }
+  }
+  suggestionPricing {
+    salesPlan {
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+    }
+  }
+  isBeingCharged
+}
+
+fragment ProfileSelectorForSuggestionEditNextSuggestion on SuggestionWithProfilesGraph {
+  _id
+  profileSuggestions {
+    _id
+    profileId
+  }
+}
+
+fragment MyDetailsMenuSuggestion on SuggestionWithProfilesGraph {
+  _id
+  skip
+  profileSuggestions {
+    _id
+    skip
+    products {
+      id
+      quantity
+    }
+  }
+  delivery {
+    option {
+      id
+      start
+      end
+      price
+      customizedPrice
+      custom
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+  }
+  suggestionPricing {
+    salesPlan {
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+    }
+  }
+}

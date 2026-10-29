@@ -1,0 +1,3 @@
+mutation linkGoogleAccountBySMS($tokenId: String!, $code: String!) {
+  linkGoogleAccountBySMS(tokenId: $tokenId, code: $code)
+}

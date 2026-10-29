@@ -1,0 +1,5 @@
+mutation subscribeToReactivationUrlVoucher($code: String!, $deviceFingerprint: String, $mode: String) {
+  subscribeToVoucher(code: $code, deviceFingerprint: $deviceFingerprint, mode: $mode) {
+    code
+  }
+}

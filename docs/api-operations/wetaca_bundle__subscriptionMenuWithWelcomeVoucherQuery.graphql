@@ -1,0 +1,66 @@
+query subscriptionMenuWithWelcomeVoucherQuery($code: String!, $menuDishesFilter: MenuDishesFilter!) {
+  subscriptionWelcomeVoucher {
+    code
+    subscriptionDiscount {
+      price
+      percent
+      maximum
+    }
+  }
+  segmentMenu(menuDishesFilter: $menuDishesFilter) {
+    id
+    dateFrom
+    dateTo
+    dishes {
+      datePublished
+      id
+      name
+      slug
+      price
+      subscriptionPrice
+      category {
+        _id
+        id: slug
+        name
+        slug
+        description
+        order
+        subscriptionPrice
+      }
+      tags
+      ingredients
+      ingredientsBreakdown
+      allergens
+      isNew
+      features
+      specialTemplate
+      isPromoted
+      speciality
+      frontPage
+      weight
+      nutritionFacts {
+        energy
+        totalFat
+        saturatedFat
+        proteins
+        hydrates
+        sugars
+        fiber
+        salt
+      }
+    }
+  }
+  voucher(code: $code) {
+    ... on PublicVoucher {
+      code
+      subscriptionDiscount {
+        price
+        percent
+        maximum
+      }
+    }
+    ... on GraphError {
+      errorCode
+    }
+  }
+}

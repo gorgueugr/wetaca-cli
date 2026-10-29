@@ -1,0 +1,3 @@
+query sessionTokenBySms($login: String!, $code: String!, $segmentSlug: String) {
+  apiToken: sessionTokenBySms(username: $login, code: $code, segmentSlug: $segmentSlug)
+}

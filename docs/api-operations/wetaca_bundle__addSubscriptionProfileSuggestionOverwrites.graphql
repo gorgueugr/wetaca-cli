@@ -1,0 +1,9 @@
+mutation addSubscriptionProfileSuggestionOverwrites($profileId: ModelId!, $overwrites: [SuggestionOverwriteGraphInput!]!) {
+  addSubscriptionProfileSuggestionOverwrites(profileId: $profileId, suggestionOverwrites: $overwrites) {
+    id
+    suggestionOverwrites {
+      productId
+      replacement
+    }
+  }
+}

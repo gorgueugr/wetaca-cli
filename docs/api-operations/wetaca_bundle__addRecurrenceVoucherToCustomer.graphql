@@ -1,0 +1,23 @@
+mutation addRecurrenceVoucherToCustomer {
+  recurrenceVouchers: subscribeToRecurrenceVoucher {
+    recurrenceVoucher {
+      code
+      dateTo
+      subscriptionDiscount {
+        price
+        percent
+        maximum
+      }
+    }
+    nextAssociatedVoucher {
+      code
+      dateTo
+      dateFrom
+      subscriptionDiscount {
+        price
+        percent
+        maximum
+      }
+    }
+  }
+}

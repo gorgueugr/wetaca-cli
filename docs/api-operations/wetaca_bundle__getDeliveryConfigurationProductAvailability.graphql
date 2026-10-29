@@ -1,0 +1,13 @@
+query getDeliveryConfigurationProductAvailability($segmentId: ModelId!, $date: DateTime) {
+  getDeliveryConfigurationProductAvailability(segmentId: $segmentId, date: $date, isSubscriptionIntent: true) {
+    optionsWithRestrictions {
+      _id
+      id
+      maxQuantity
+      configurationDay
+      deliveryDateDay
+      start
+      end
+    }
+  }
+}

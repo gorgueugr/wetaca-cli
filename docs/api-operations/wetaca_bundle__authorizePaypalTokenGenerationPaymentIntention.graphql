@@ -1,0 +1,7 @@
+mutation authorizePaypalTokenGenerationPaymentIntention($paymentIntentionId: ModelId!, $paymentIntentionSliceId: ModelId!, $paypalInitTokenId: String!) {
+  authorizePaypalTokenGenerationPaymentIntention(paymentIntentionId: $paymentIntentionId, paymentIntentionSliceId: $paymentIntentionSliceId, paypalInitTokenId: $paypalInitTokenId) {
+    ok
+    error
+    storedPaymentToken
+  }
+}

@@ -1,0 +1,13 @@
+mutation saveAddress($address: AddressInput!) {
+  saveAddress(address: $address) {
+    id
+    firstname
+    lastname
+    street
+    number
+    zipcode
+    city
+    phone
+    floor
+  }
+}

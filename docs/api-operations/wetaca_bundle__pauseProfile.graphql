@@ -1,0 +1,56 @@
+mutation pauseProfile($profileId: ModelId!) {
+  pauseProfile(profileId: $profileId) {
+    id
+    name
+    email
+    isActive
+    allergens {
+      id
+      name
+    }
+    otherAllergens
+    dislikes {
+      id
+      flavor
+      texture
+      name
+    }
+    otherDislikes {
+      name
+      flavor
+      texture
+    }
+    spicyLevel
+    diet
+    products {
+      id
+      name
+      slug
+      price
+      subscriptionPrice
+      category {
+        _id
+        slug
+        subscriptionPrice
+      }
+      quantity
+      tags
+      features
+      isPromoted
+    }
+    price
+    nutrition {
+      goal
+      preferences {
+        energy {
+          min
+          max
+        }
+        proteins
+        hydrates
+        fats
+      }
+    }
+    character
+  }
+}

@@ -1,0 +1,92 @@
+query subscriptionAccountChangePricing($subscriptionAccountId: ModelId!, $profileChanges: [ProfileChangeGraph!], $deliveryConfigurationChange: DeliveryConfigurationInput) {
+  subscriptionAccountChangePricing(subscriptionAccountId: $subscriptionAccountId, profileChanges: $profileChanges, deliveryConfigurationChange: $deliveryConfigurationChange) {
+    profiles {
+      _id
+      id
+      transactional
+      subscription
+      toPay
+    }
+    profilesTotal {
+      transactional
+      subscription
+      toPay
+    }
+    shipping
+    salesPlanDiscount
+    vouchers
+    subscription {
+      subtotal
+      total
+    }
+    transactional {
+      subtotal
+      total
+    }
+    toPay
+    appliedSalesPlanDiscount {
+      appliedDiscount
+      discount {
+        price
+        percent
+      }
+    }
+    salesPlan {
+      _id
+      id
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+      packageOption {
+        index
+        categoryRestrictions {
+          categories
+          restriction {
+            min
+            max
+          }
+        }
+        shippingSubscriptionDiscount {
+          assumed
+        }
+        baseCategory
+        baseCategoryPrice
+      }
+      packageValidation {
+        result
+        restrictions {
+          categories
+          result
+          remaining
+        }
+      }
+      upselling {
+        packageOption {
+          index
+          categoryRestrictions {
+            categories
+            restriction {
+              min
+              max
+            }
+          }
+          shippingSubscriptionDiscount {
+            assumed
+          }
+          baseCategory
+          baseCategoryPrice
+        }
+        packageValidation {
+          result
+          restrictions {
+            categories
+            result
+            remaining
+          }
+        }
+      }
+    }
+  }
+}

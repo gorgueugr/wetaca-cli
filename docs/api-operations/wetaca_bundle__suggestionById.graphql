@@ -1,0 +1,52 @@
+query suggestionById($suggestionId: ModelId!) {
+  suggestionById(suggestionId: $suggestionId) {
+    ...SuggestionEditDelivery
+    validUntil
+  }
+}
+
+fragment SuggestionEditDelivery on SuggestionGraph {
+  id
+  deliveryConfigurationId
+  delivery {
+    option {
+      id
+      start
+      end
+      price
+      customizedPrice
+      custom
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+      configurationDate {
+        start
+        end
+      }
+    }
+    address {
+      id
+      firstname
+      lastname
+      street
+      number
+      zipcode
+      city
+      phone
+      floor
+      notes
+    }
+  }
+  suggestionPricing {
+    shipping
+  }
+  menuMetadata {
+    dateFrom
+  }
+}

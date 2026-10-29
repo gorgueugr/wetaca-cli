@@ -1,0 +1,5 @@
+mutation trackLoginInternalEvent($validCredentials: LoginCredentials!) {
+  trackLoginInternalEvent(credentials: $validCredentials) {
+    cutPhone
+  }
+}

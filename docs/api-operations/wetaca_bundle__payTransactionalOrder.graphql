@@ -1,0 +1,39 @@
+mutation payTransactionalOrder($orderIntent: TransactionalOrderIntent!, $deviceFingerprint: String) {
+  payTransactionalOrder(orderIntent: $orderIntent, deviceFingerprint: $deviceFingerprint) {
+    ok
+    error
+    confirmedOrder {
+      id
+      reference
+      vouchers {
+        code
+        appliedDiscount
+        tagNames
+      }
+      products {
+        id
+        name
+        price
+        quantity
+        category {
+          slug
+          name
+        }
+        slug
+        tags
+      }
+      delivery {
+        option {
+          start
+        }
+      }
+      price
+      pricingInfo {
+        delivery {
+          shippingPrice
+          shippingDiscount
+        }
+      }
+    }
+  }
+}

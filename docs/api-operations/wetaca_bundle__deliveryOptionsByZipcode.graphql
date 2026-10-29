@@ -1,0 +1,27 @@
+query deliveryOptionsByZipcode($zipcode: Int!, $fromDate: DateTime, $salesPlanId: ID) {
+  deliveryOptions: deliveryOptionsByZipcode(zipcode: $zipcode, fromDate: $fromDate, salesPlanId: $salesPlanId) {
+    id
+    start
+    end
+    price
+    customizedPrice
+    exception {
+      start
+      end
+      from {
+        year
+        month
+        dayOfMonth
+      }
+    }
+    slots {
+      id
+      start
+      end
+    }
+    configurationDate {
+      start
+      end
+    }
+  }
+}

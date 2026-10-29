@@ -1,0 +1,3 @@
+mutation trackInternalEvent($validCredentials: SignupCredentials!) {
+  trackInternalEvent(credentials: $validCredentials)
+}

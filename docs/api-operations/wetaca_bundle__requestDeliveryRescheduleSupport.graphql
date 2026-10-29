@@ -1,0 +1,6 @@
+mutation requestDeliveryRescheduleSupport($id: Int!, $address: DeliveryRescheduleAddressInput!) {
+  requestDeliveryRescheduleSupport(id: $id, address: $address) {
+    id
+    status
+  }
+}

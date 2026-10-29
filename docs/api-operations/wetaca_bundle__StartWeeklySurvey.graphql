@@ -1,0 +1,33 @@
+mutation StartWeeklySurvey {
+  startWeeklySurvey {
+    menuId
+    variant
+    status
+    dishesToRate {
+      dishId
+      name
+      imageUrl
+    }
+    shouldAskWillRepeat
+    alreadyCompleted
+    outOfWindow
+    customerReferralCode
+    savedAnswers {
+      dishes {
+        dishId
+        rating
+        comment
+        notEaten
+      }
+      extraDishSuggestion
+      deliveryRating
+      deliveryComment
+      subscriptionRating
+      subscriptionMissing
+      subscriptionLike
+      wetacaRating
+      wetacaWhyComment
+      willRepeat
+    }
+  }
+}

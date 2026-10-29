@@ -1,0 +1,31 @@
+query calculateNextProfileSuggestions($profileId: ModelId!, $suggestionsRequired: Int) {
+  calculateNextProfileSuggestions(profileId: $profileId, suggestionsRequired: $suggestionsRequired) {
+    menuId
+    productRelations {
+      quantity
+      id
+      name
+      slug
+      isPromoted
+      features
+      suggestedProduct {
+        id
+        name
+        slug
+        isPromoted
+        features
+        overwritten
+        category {
+          slug
+        }
+      }
+      otherProductRelations {
+        id
+        name
+        slug
+        isPromoted
+        features
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+query computeConfirmedOrderModificationPriceSummary($orderId: Int!, $productModifications: [ProductModificationInput!]!) {
+  computeConfirmedOrderModificationPriceSummary(orderId: $orderId, productModifications: $productModifications) {
+    priceDifference
+    newPrice
+    totalBeforeDiscount
+  }
+}

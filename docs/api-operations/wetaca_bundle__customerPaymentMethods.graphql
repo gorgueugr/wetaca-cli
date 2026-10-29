@@ -1,0 +1,23 @@
+query customerPaymentMethods($provider: PaymentMethodProvider) {
+  customerPaymentMethods(provider: $provider) {
+    ... on CreditCard {
+      id
+      provider
+      number
+      expirationMonth
+      expirationYear
+      cardType
+      isSubscription
+      isScheduledDeposit
+      supplier
+      supplierOriginalDisplay
+    }
+    ... on PaypalPaymentMethod {
+      id
+      provider
+      accountEmail
+      isSubscription
+      isScheduledDeposit
+    }
+  }
+}

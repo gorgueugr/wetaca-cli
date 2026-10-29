@@ -1,0 +1,5 @@
+mutation editDeliveryAccountInfo($subscriptionDeliveryInput: EditSubscriptionGraph!) {
+  editDeliveryAccountInfo(subscriptionDeliveryInput: $subscriptionDeliveryInput) {
+    id
+  }
+}

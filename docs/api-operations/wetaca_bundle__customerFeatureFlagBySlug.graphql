@@ -1,0 +1,7 @@
+query customerFeatureFlagBySlug($slug: String!) {
+  customerFeatureFlag(slug: $slug) {
+    slug
+    value
+    isPersisted
+  }
+}

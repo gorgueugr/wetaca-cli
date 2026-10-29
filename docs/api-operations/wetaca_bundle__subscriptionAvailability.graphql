@@ -1,0 +1,3 @@
+query subscriptionAvailability($allergens: [String!], $dislikes: [String!], $dietType: Diet, $spicyLevel: SpicyLevel) {
+  subscriptionAvailability(allergens: $allergens, dislikes: $dislikes, dietType: $dietType, spicyLevel: $spicyLevel)
+}

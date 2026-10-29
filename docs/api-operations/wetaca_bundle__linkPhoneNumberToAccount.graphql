@@ -1,0 +1,3 @@
+mutation linkPhoneNumberToAccount($customerId: Int!, $phoneNumber: String!, $code: String!) {
+  linkPhoneNumberToAccount(customerId: $customerId, phoneNumber: $phoneNumber, code: $code)
+}

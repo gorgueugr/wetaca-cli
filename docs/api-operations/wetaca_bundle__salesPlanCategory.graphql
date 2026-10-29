@@ -1,0 +1,5 @@
+query salesPlanCategory($categoryId: ModelId!, $salesPlanId: ModelId) {
+  salesPlanCategory(categoryId: $categoryId, salesPlanId: $salesPlanId) {
+    subscriptionPrice
+  }
+}

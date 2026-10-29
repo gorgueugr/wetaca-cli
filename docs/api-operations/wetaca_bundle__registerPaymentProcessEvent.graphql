@@ -1,0 +1,3 @@
+mutation registerPaymentProcessEvent($input: PaymentProcessEventInput!, $markAsPaymentCompleted: Boolean, $markAsSubscribed: Boolean) {
+  registerPaymentProcessEvent(input: $input, markAsPaymentCompleted: $markAsPaymentCompleted, markAsSubscribed: $markAsSubscribed)
+}

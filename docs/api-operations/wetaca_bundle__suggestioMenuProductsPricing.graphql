@@ -1,0 +1,26 @@
+query suggestioMenuProductsPricing($menuId: String!, $salesPlanId: ModelId!) {
+  menuProductsSubscriptionAccountPricing(menuId: $menuId, salesPlanId: $salesPlanId) {
+    salesPlanId
+    salesPlanPrices {
+      default {
+        productId
+        productPrice {
+          price
+          categoryPrice
+          subscriptionPrice
+        }
+      }
+      packages {
+        packageOptionIndex
+        productsPrices {
+          productId
+          productPrice {
+            price
+            categoryPrice
+            subscriptionPrice
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+query customer {
+  customer {
+    id
+    firstname
+    lastname
+    email
+    phoneNumber
+    newsletter
+    birthdate
+  }
+}

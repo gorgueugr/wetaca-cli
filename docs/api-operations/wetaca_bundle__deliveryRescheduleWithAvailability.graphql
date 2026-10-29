@@ -1,0 +1,53 @@
+query deliveryRescheduleWithAvailability($id: Int!, $zipcode: Int) {
+  deliveryRescheduleWithAvailability(id: $id, zipcode: $zipcode) {
+    id
+    status
+    canRequestSupport
+    originalDelivery {
+      option {
+        id
+        start
+        end
+      }
+      address {
+        firstname
+        lastname
+        street
+        number
+        floor
+        zipcode
+        city
+        phone
+      }
+    }
+    rescheduledDelivery {
+      option {
+        id
+        start
+        end
+      }
+    }
+    availability {
+      status
+      options {
+        id
+        start
+        end
+        price
+        configurationDate {
+          start
+          end
+        }
+        exception {
+          start
+          end
+          from {
+            year
+            month
+            dayOfMonth
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+mutation pauseSuggestion($suggestionId: ModelId!, $path: String!, $feedback: String) {
+  paused: pauseSuggestion(suggestionId: $suggestionId, path: $path, feedback: $feedback) {
+    id
+    skip
+  }
+}

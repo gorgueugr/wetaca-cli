@@ -1,0 +1,21 @@
+query changeOptionsQuery($orderId: Int!, $addressId: Int, $zipcode: Int) {
+  changeOptions(orderId: $orderId, addressId: $addressId, zipcode: $zipcode) {
+    id
+    start
+    end
+    price
+    configurationDate {
+      start
+      end
+    }
+    exception {
+      start
+      end
+      from {
+        year
+        month
+        dayOfMonth
+      }
+    }
+  }
+}

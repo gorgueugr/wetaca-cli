@@ -1,0 +1,95 @@
+query confirmedOrderEditContext($orderId: Int!) {
+  confirmedOrderEditContext(orderId: $orderId) {
+    minPrice
+    isMultiProfile
+    editability {
+      isModifiable
+      isCancellable
+      reason
+    }
+    order {
+      id
+      price
+      salesPlanDiscount {
+        appliedDiscount
+        discount {
+          price
+          percent
+          maximum
+        }
+      }
+      vouchers {
+        code
+        appliedDiscount
+        discount {
+          price
+          percent
+          maximum
+        }
+      }
+      products {
+        id
+        name
+        price
+        quantity
+        slug
+      }
+      delivery {
+        option {
+          id
+          start
+          end
+          configurationDate {
+            start
+            end
+          }
+          exception {
+            start
+            end
+          }
+        }
+      }
+    }
+    deliveryWeekMenu {
+      dishes {
+        datePublished
+        id
+        name
+        slug
+        price
+        subscriptionPrice
+        category {
+          _id
+          id: slug
+          name
+          slug
+          description
+          order
+          subscriptionPrice
+        }
+        tags
+        ingredients
+        ingredientsBreakdown
+        allergens
+        suitableForProfile
+        isNew
+        features
+        specialTemplate
+        isPromoted
+        speciality
+        frontPage
+        weight
+        nutritionFacts {
+          energy
+          totalFat
+          saturatedFat
+          proteins
+          hydrates
+          sugars
+          fiber
+          salt
+        }
+      }
+    }
+  }
+}

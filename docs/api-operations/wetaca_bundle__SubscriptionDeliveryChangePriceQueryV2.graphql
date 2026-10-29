@@ -1,0 +1,5 @@
+query SubscriptionDeliveryChangePriceQueryV2($id: ModelId!, $deliveryConfigurationChange: DeliveryConfigurationInput!) {
+  subscriptionAccountChangePricing(subscriptionAccountId: $id, deliveryConfigurationChange: $deliveryConfigurationChange) {
+    shipping
+  }
+}

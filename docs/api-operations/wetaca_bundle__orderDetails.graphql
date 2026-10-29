@@ -1,0 +1,124 @@
+query orderDetails($id: Int!) {
+  order(id: $id) {
+    id
+    reference
+    delivery {
+      type
+      address {
+        id
+        street
+        number
+        floor
+        city
+        zipcode
+        firstname
+        lastname
+        phone
+      }
+      option {
+        id
+        start
+        end
+        price
+        custom
+        customizedPrice
+        configurationDate {
+          start
+          end
+        }
+      }
+      options {
+        id
+        price
+        start
+        end
+        customizedPrice
+        day
+        skipConfirmation
+        configurationDate {
+          start
+          end
+        }
+        slots {
+          id
+          start
+          end
+        }
+        exception {
+          start
+          end
+          from {
+            year
+            month
+            dayOfMonth
+          }
+        }
+      }
+      exceptions {
+        start
+        end
+        day
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    profilesProductMap {
+      name
+      products {
+        id
+        quantity
+        day
+      }
+    }
+    billingAddress {
+      id
+      name
+      lastname
+      country
+      vat
+      street
+      number
+      floor
+      zipcode
+      city
+    }
+    voucher {
+      code
+      discount
+    }
+    salesPlanDiscount {
+      appliedDiscount
+    }
+    products {
+      id
+      name
+      price
+      quantity
+      slug
+      nutritionFacts {
+        energy
+        fiber
+        hydrates
+        proteins
+        salt
+        saturatedFat
+        sugars
+        totalFat
+      }
+      ingredients
+      allergens
+      tags
+      weight
+    }
+    price
+    invoiceUrl
+    payments {
+      provider
+    }
+    canChange
+    subscriptionAccountId
+  }
+}

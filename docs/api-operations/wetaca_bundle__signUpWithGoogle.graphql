@@ -1,0 +1,15 @@
+mutation signUpWithGoogle($code: String!, $redirectUri: String!, $segmentSlug: String, $locale: String) {
+  signUpWithGoogle(code: $code, redirectUri: $redirectUri, segmentSlug: $segmentSlug, locale: $locale) {
+    ... on GoogleSignupSuccess {
+      jwtToken
+      isNewCustomer
+    }
+    ... on GoogleNeedsLinkage {
+      email
+      tokenId
+      requireLinkAccounts
+      requirePhoneNumber
+      passSet
+    }
+  }
+}

@@ -1,0 +1,11 @@
+mutation subscribeCustomer($profiles: [SubscriptionProfileInputGraph!]!, $subscriptionAccountInput: SubscriptionAccountInputGraph!, $voucherCode: String, $menuId: String, $paymentProcessEventId: ModelId) {
+  subscribeCustomer(subscriptionAccountInput: $subscriptionAccountInput, profiles: $profiles, voucherCode: $voucherCode, menuId: $menuId, paymentProcessEventId: $paymentProcessEventId) {
+    profilesCreated {
+      name
+    }
+    profileCreationErrors
+    account {
+      id
+    }
+  }
+}

@@ -1,0 +1,92 @@
+fragment SubscriptionSummary on SubscriptionAccountGraphWithProfiles {
+  _id
+  id
+  isActive
+  pausedUntil
+  profiles {
+    id
+    isActive
+    productMap {
+      id
+      quantity
+      day
+    }
+  }
+  delivery {
+    type
+    option {
+      id
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+    }
+    options {
+      id
+      day
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    exceptions {
+      day
+      start
+      end
+      from {
+        year
+        month
+        dayOfMonth
+      }
+    }
+    address {
+      id
+      street
+      number
+      floor
+      city
+      zipcode
+      phone
+      firstname
+      lastname
+    }
+  }
+  payments {
+    reference
+    provider
+  }
+  nextSuggestionSkipped
+  subscriptionAccountPricing {
+    salesPlanDiscount
+    subscription {
+      subtotal
+    }
+    profilesTotal {
+      subscription
+    }
+    salesPlan {
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+    }
+  }
+  isOptInMutable
+  optInSuggestions
+}

@@ -1,0 +1,95 @@
+fragment SubscriptionSummarySuggestion on SuggestionWithProfilesGraph {
+  _id
+  skip
+  validUntil
+  deliveryConfigurationId
+  delivery {
+    type
+    option {
+      id
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+    }
+    options {
+      id
+      day
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+      exception {
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    exceptions {
+      day
+      start
+      end
+      from {
+        year
+        month
+        dayOfMonth
+      }
+    }
+    address {
+      id
+      street
+      number
+      floor
+      city
+      zipcode
+      phone
+      firstname
+      lastname
+    }
+  }
+  billingAddress {
+    id
+    name
+    lastname
+    country
+    vat
+    street
+    number
+    floor
+    zipcode
+    city
+  }
+  profileSuggestions {
+    _id
+    skip
+    productMap {
+      id
+      quantity
+      day
+    }
+    products {
+      id
+      quantity
+    }
+  }
+  suggestionPricing {
+    salesPlan {
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+    }
+  }
+  isBeingCharged
+}

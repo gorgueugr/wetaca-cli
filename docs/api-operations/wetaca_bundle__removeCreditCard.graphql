@@ -1,0 +1,3 @@
+mutation removeCreditCard($cardId: String!, $isScheduledDeposit: Boolean!) {
+  removed: removeCreditCard(cardId: $cardId, isScheduledDeposit: $isScheduledDeposit)
+}

@@ -1,0 +1,18 @@
+query customerBillingAddresses {
+  customerBillingAddresses {
+    _id
+    id
+    customerId
+    name
+    lastname
+    country
+    vat
+    street
+    number
+    floor
+    zipcode
+    city
+    isSubscriptionAddress
+    isSuggestionAddress
+  }
+}

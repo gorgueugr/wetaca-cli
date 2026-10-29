@@ -1,0 +1,61 @@
+query referralConfig {
+  myReferralConfig {
+    voucherTag
+    referral {
+      discount {
+        price
+        percent
+        maximum
+      }
+      subscriptionDiscount {
+        price
+        percent
+        maximum
+      }
+      customDisplay {
+        referralBannerTitleLine1Text
+        referralBannerTitleLine2Text
+        referralBannerSubtitleText
+      }
+    }
+    referred {
+      transactional {
+        discount {
+          price
+          percent
+          maximum
+        }
+        subscriptionDiscount {
+          price
+          percent
+          maximum
+        }
+      }
+      subscription {
+        discount {
+          price
+          percent
+          maximum
+        }
+        subscriptionDiscount {
+          price
+          percent
+          maximum
+        }
+      }
+    }
+    referredRewardLimits {
+      total
+      perWeek
+    }
+  }
+  customer {
+    id
+    firstname
+    referralCode
+    segment {
+      _id
+      allowReferralBenefits
+    }
+  }
+}

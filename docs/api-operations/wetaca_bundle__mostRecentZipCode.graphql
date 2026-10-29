@@ -1,0 +1,9 @@
+query mostRecentZipCode {
+  mostRecent: lastUsedOrderOptions {
+    delivery {
+      address {
+        zipcode
+      }
+    }
+  }
+}

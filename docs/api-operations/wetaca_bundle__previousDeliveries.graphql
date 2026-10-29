@@ -1,0 +1,33 @@
+query previousDeliveries($limit: Int!, $offset: Int) {
+  previousDeliveries(limit: $limit, offset: $offset) {
+    id
+    reference
+    dateCreated
+    price
+    invoiceUrl
+    state
+    subscriptionAccountId
+    delivery {
+      type
+      option {
+        start
+      }
+      options {
+        start
+        day
+      }
+    }
+    billingAddress {
+      id
+      name
+      lastname
+      country
+      vat
+      street
+      number
+      floor
+      zipcode
+      city
+    }
+  }
+}

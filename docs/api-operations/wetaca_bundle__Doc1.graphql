@@ -1,0 +1,14 @@
+fragment BillingAddressSection on SubscriptionAccountGraphWithProfiles {
+  billingAddress {
+    id
+    name
+    lastname
+    country
+    vat
+    street
+    number
+    floor
+    zipcode
+    city
+  }
+}

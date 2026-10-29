@@ -1,0 +1,45 @@
+mutation cancelSubscriptionAccount($subscriptionAccountId: ModelId!, $path: String!, $pausedWeeks: Int, $feedback: String) {
+  subscriptionAccount: cancelSubscriptionAccount(subscriptionAccountId: $subscriptionAccountId, path: $path, pausedWeeks: $pausedWeeks, feedback: $feedback) {
+    id
+    delivery {
+      address {
+        id
+        firstname
+        lastname
+        street
+        number
+        zipcode
+        city
+        phone
+        floor
+        notes
+      }
+      option {
+        start
+        end
+        price
+        customizedPrice
+        custom
+      }
+    }
+    billingAddress {
+      id
+      name
+      lastname
+      country
+      vat
+      street
+      number
+      floor
+      zipcode
+      city
+    }
+    payments {
+      provider
+      reference
+    }
+    isActive
+    pausedUntil
+    segmentId
+  }
+}

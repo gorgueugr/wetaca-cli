@@ -1,0 +1,16 @@
+mutation SubmitWeeklySurvey($input: WeeklySurveyStepInput!) {
+  submitWeeklySurvey(input: $input) {
+    menuId
+    variant
+    status
+    dishesToRate {
+      dishId
+      name
+      imageUrl
+    }
+    shouldAskWillRepeat
+    alreadyCompleted
+    outOfWindow
+    customerReferralCode
+  }
+}

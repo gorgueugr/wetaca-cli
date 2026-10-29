@@ -1,0 +1,40 @@
+fragment SubscriptionAccountProfileDetails on SubscriptionAccountGraphWithProfiles {
+  _id
+  delivery {
+    type
+    address {
+      id
+      street
+      number
+      floor
+      city
+      zipcode
+      firstname
+      lastname
+      phone
+    }
+    option {
+      id
+      start
+      end
+      price
+      custom
+      customizedPrice
+      configurationDate {
+        start
+        end
+      }
+    }
+    options {
+      id
+      day
+      start
+      end
+      price
+      configurationDate {
+        start
+        end
+      }
+    }
+  }
+}

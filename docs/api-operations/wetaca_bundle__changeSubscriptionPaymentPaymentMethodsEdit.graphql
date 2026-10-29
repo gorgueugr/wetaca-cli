@@ -1,0 +1,8 @@
+mutation changeSubscriptionPaymentPaymentMethodsEdit($payments: [SubscriptionPaymentMethodsInputGraph!]!) {
+  changeSubscriptionPayment(paymentMethods: $payments) {
+    id
+    payments {
+      reference
+    }
+  }
+}

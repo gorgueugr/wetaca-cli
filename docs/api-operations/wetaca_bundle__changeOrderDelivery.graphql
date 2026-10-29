@@ -1,0 +1,27 @@
+mutation changeOrderDelivery($orderId: Int!, $delivery: DeliveryInput!, $persistChanges: Boolean!) {
+  changeDelivery(orderId: $orderId, delivery: $delivery, persistChanges: $persistChanges) {
+    id
+    delivery {
+      address {
+        id
+        street
+        number
+        floor
+        city
+        zipcode
+        firstname
+        lastname
+        phone
+        notes
+      }
+      option {
+        id
+        start
+        end
+        price
+        custom
+        customizedPrice
+      }
+    }
+  }
+}

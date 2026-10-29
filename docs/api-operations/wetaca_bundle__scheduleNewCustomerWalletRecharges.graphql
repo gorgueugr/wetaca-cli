@@ -1,0 +1,3 @@
+mutation scheduleNewCustomerWalletRecharges($amount: Int!, $paymentMethodId: ModelId!, $schedules: [WalletDepositScheduleInput!]!) {
+  scheduleNewCustomerWalletRecharges(amount: $amount, paymentMethodId: $paymentMethodId, schedules: $schedules)
+}

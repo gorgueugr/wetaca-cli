@@ -1,0 +1,22 @@
+query voucherCustomDisplay($voucherCode: String!) {
+  voucher(code: $voucherCode) {
+    ... on PublicVoucher {
+      code
+      customDisplay {
+        topbarText
+        tooltipButtonText
+        ctaButtonText
+        primarySticker
+        landingTemplate
+        alternativeLandingTemplate
+        promoBannerPrefix
+        promoBannerDiscount
+        promoBannerPrice
+        promoBannerSuffix
+      }
+    }
+    ... on GraphError {
+      errorCode
+    }
+  }
+}

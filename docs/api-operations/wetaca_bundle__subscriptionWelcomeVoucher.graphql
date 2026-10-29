@@ -1,0 +1,10 @@
+query subscriptionWelcomeVoucher {
+  subscriptionWelcomeVoucher {
+    code
+    subscriptionDiscount {
+      price
+      percent
+      maximum
+    }
+  }
+}

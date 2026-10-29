@@ -1,0 +1,80 @@
+query pendingTransactionalDeliveryOrders {
+  nextTransactionalDeliveries {
+    order {
+      dateCreated
+      state
+      id
+      canChange
+      billingAddress {
+        id
+        name
+        lastname
+        country
+        vat
+        street
+        number
+        floor
+        zipcode
+        city
+      }
+      delivery {
+        type
+        address {
+          id
+          firstname
+          lastname
+          street
+          number
+          zipcode
+          city
+          phone
+          floor
+          notes
+        }
+        option {
+          id
+          start
+          end
+          price
+          customizedPrice
+          custom
+        }
+        options {
+          id
+          day
+          start
+          end
+          price
+          exception {
+            start
+            end
+            from {
+              year
+              month
+              dayOfMonth
+            }
+          }
+        }
+      }
+      products {
+        id
+        slug
+        name
+        price
+        subscriptionPrice
+        category {
+          slug
+          subscriptionPrice
+        }
+        tags
+        ingredientsBreakdown
+        allergens
+        quantity
+      }
+      price
+      reference
+      invoiceUrl
+    }
+    validUntil
+  }
+}

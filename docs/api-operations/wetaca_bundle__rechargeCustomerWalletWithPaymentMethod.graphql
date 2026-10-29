@@ -1,0 +1,6 @@
+mutation rechargeCustomerWalletWithPaymentMethod($amount: Int!, $paymentMethodId: ModelId!) {
+  rechargeCustomerWalletWithPaymentMethod(amount: $amount, paymentMethodId: $paymentMethodId) {
+    ok
+    error
+  }
+}

@@ -1,0 +1,16 @@
+query featuredArticlesQuery($limit: Int) {
+  articleCollection(limit: $limit, where: {featured: true}, order: sys_firstPublishedAt_DESC) {
+    total
+    items {
+      sys {
+        id
+      }
+      title
+      imageUrl
+      slug
+      sticker
+      stickerPos
+      excerpt
+    }
+  }
+}

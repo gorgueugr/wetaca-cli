@@ -1,0 +1,48 @@
+fragment SubscriptionProfiles on SubscriptionProfileGraph {
+  id
+  isActive
+  name
+  email
+  price
+  productMap {
+    quantity
+  }
+  products {
+    id
+    name
+    quantity
+    features
+    isPromoted
+  }
+  allergens {
+    id
+    name
+  }
+  otherAllergens
+  diet
+  spicyLevel
+  nutrition {
+    goal
+    preferences {
+      energy {
+        min
+        max
+      }
+      proteins
+      hydrates
+      fats
+    }
+  }
+  dislikes {
+    id
+    flavor
+    texture
+    name
+  }
+  otherDislikes {
+    name
+    flavor
+    texture
+  }
+  character
+}

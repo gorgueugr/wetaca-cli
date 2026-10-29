@@ -1,0 +1,26 @@
+query subscriptionAccountIntentPricingFunnelCart($subscriptionAccountInput: SubscriptionAccountInputGraphWithoutPayments!, $profiles: [SubscriptionProfileInputGraph!]!, $voucherCode: String) {
+  subscriptionAccountIntentPricing(subscriptionAccountInput: $subscriptionAccountInput, profiles: $profiles, voucherCode: $voucherCode) {
+    toPay
+    transactional {
+      subtotal
+    }
+    subscription {
+      subtotal
+    }
+    appliedSalesPlanDiscount {
+      appliedDiscount
+    }
+    appliedVouchers {
+      code
+      tagNames
+      appliedDiscount
+    }
+    salesPlan {
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+    }
+  }
+}

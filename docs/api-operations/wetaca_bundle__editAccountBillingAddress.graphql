@@ -1,0 +1,5 @@
+mutation editAccountBillingAddress($billingAddressId: ModelId) {
+  editAccountBillingAddress(billingAddressId: $billingAddressId) {
+    id
+  }
+}

@@ -1,0 +1,5 @@
+query getDeliveryConfigurationMaxQuantities($segmentId: ModelId!, $date: DateTime) {
+  deliveryConfiguration: getDeliveryConfigurationProductAvailability(segmentId: $segmentId, date: $date, isSubscriptionIntent: true) {
+    maxTotalQuantityRestriction
+  }
+}

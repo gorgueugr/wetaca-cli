@@ -1,0 +1,6 @@
+mutation resumeSuggestion($suggestionId: ModelId!) {
+  resumed: resumeSuggestion(suggestionId: $suggestionId) {
+    id
+    skip
+  }
+}

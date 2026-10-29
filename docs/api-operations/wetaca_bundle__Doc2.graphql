@@ -1,0 +1,7 @@
+fragment ProfileSelectorForSuggestionEditNextSuggestion on SuggestionWithProfilesGraph {
+  _id
+  profileSuggestions {
+    _id
+    profileId
+  }
+}

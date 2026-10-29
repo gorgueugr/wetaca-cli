@@ -1,0 +1,22 @@
+query articleQuery($slug: String!, $preview: Boolean!) {
+  articleCollection(where: {slug: $slug}, preview: $preview) {
+    items {
+      title
+      subtitle
+      imageUrl
+      slug
+      content
+      metaTitle
+      metaDescription
+      sys {
+        firstPublishedAt
+        publishedAt
+      }
+      categoriesCollection {
+        items {
+          name
+        }
+      }
+    }
+  }
+}

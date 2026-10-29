@@ -1,0 +1,17 @@
+mutation authorizeRedsysPaymentIntention($paymentIntentionId: ModelId!, $paymentIntentionSliceId: ModelId!, $paymentOperationId: String!, $paymentInterfaceBrowser: PaymentInterfaceBrowserInput!, $threeDSCompInd: RedsysThreeDSCompInd!) {
+  authorizeRedsysPaymentIntention(paymentIntentionId: $paymentIntentionId, paymentIntentionSliceId: $paymentIntentionSliceId, paymentOperationId: $paymentOperationId, paymentInterfaceBrowser: $paymentInterfaceBrowser, threeDSCompInd: $threeDSCompInd) {
+    ... on RedsysChallengeRequestAuthorizationResolution {
+      PAReq
+      MD
+      acsURL
+      creq
+      protocolVersion
+      notificationUrl
+    }
+    ... on RedsysFrictionlessAuthorizationResolution {
+      ok
+      storedCardReference
+      error
+    }
+  }
+}

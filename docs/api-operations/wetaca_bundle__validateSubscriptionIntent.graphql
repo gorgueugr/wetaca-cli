@@ -1,0 +1,6 @@
+query validateSubscriptionIntent($profiles: [SubscriptionProfileInputGraph!]!, $subscriptionAccountInput: SubscriptionAccountInputGraph!, $voucherCode: String, $menuId: String) {
+  validateSubscriptionIntent(profiles: $profiles, subscriptionAccountInput: $subscriptionAccountInput, voucherCode: $voucherCode, menuId: $menuId) {
+    createdDeliveryAddressId
+    createdBillingAddressId
+  }
+}

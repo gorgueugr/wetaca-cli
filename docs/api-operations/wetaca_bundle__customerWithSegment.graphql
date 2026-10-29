@@ -1,0 +1,61 @@
+query customerWithSegment {
+  customer {
+    id
+    firstname
+    lastname
+    email
+    phoneNumber
+    newsletter
+    birthdate
+    locale
+    passSet
+    pushNotifications
+    segment {
+      _id
+      slug
+      tag
+      targetRules {
+        priority
+      }
+      allowReferralBenefits
+      subscription {
+        enabled
+        disableProfileMaxPriceLimitation
+        invalidateUseOfPublicVouchers
+        allowMultiprofile
+        noPaymentMethodRequired
+        dnpProductsRatioValidationEnabled
+      }
+      transactional {
+        enabled
+        invalidateUseOfPublicVouchers
+      }
+      activeStandardSalesPlan {
+        _id
+        id
+        name
+        description
+        specification {
+          minPrice
+        }
+        applications {
+          active
+          applicableTo
+        }
+      }
+      activeEntrySalesPlan {
+        _id
+        id
+        name
+        description
+        specification {
+          minPrice
+        }
+        applications {
+          active
+          applicableTo
+        }
+      }
+    }
+  }
+}

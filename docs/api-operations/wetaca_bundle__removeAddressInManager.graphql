@@ -1,0 +1,5 @@
+mutation removeAddressInManager($addressId: Int!) {
+  removeAddress(addressId: $addressId) {
+    id
+  }
+}

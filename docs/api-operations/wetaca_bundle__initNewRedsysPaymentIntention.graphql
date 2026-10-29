@@ -1,0 +1,10 @@
+mutation initNewRedsysPaymentIntention($newPaymentIntentionRequest: SimplePaymentIntentionInput!, $paymentOperationId: String!) {
+  initNewRedsysPaymentIntention(newPaymentIntentionRequest: $newPaymentIntentionRequest, paymentOperationId: $paymentOperationId) {
+    paymentIntentionId
+    paymentIntentionSliceId
+    threeDSMethodURL
+    threeDSServerTransID
+    threeDSMethodNotificationURL
+    alreadyPlaced
+  }
+}

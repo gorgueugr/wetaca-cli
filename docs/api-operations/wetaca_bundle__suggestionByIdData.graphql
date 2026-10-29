@@ -1,0 +1,6 @@
+query suggestionByIdData($suggestionId: ModelId!) {
+  suggestionById(suggestionId: $suggestionId) {
+    id
+    validUntil
+  }
+}

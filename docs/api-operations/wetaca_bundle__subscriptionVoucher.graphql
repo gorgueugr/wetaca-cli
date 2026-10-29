@@ -1,0 +1,27 @@
+query subscriptionVoucher($voucherCode: String!) {
+  voucher(code: $voucherCode) {
+    ... on PublicVoucher {
+      code
+      subscriptionDiscount {
+        price
+        percent
+        maximum
+      }
+      customDisplay {
+        topbarText
+        tooltipButtonText
+        ctaButtonText
+        primarySticker
+        landingTemplate
+        alternativeLandingTemplate
+        promoBannerPrefix
+        promoBannerDiscount
+        promoBannerPrice
+        promoBannerSuffix
+      }
+    }
+    ... on GraphError {
+      errorCode
+    }
+  }
+}

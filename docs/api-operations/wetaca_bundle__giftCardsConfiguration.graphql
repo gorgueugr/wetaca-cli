@@ -1,0 +1,6 @@
+query giftCardsConfiguration {
+  giftCardsConfiguration {
+    minAmount
+    maxAmount
+  }
+}

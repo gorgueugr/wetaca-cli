@@ -1,0 +1,142 @@
+query profileSuggestionWithProfileById($profileSuggestionId: ModelId!) {
+  profileSuggestionWithProfileById(profileSuggestionId: $profileSuggestionId) {
+    id
+    suggestionId
+    profile {
+      _id
+      id
+      customerId
+      dateCreated
+      dateUpdated
+      isActive
+      otherAllergens
+      otherDislikes {
+        name
+        flavor
+        texture
+      }
+      productMap {
+        id
+        quantity
+      }
+      productsBlacklist
+      subscriptionAccountId
+      allergens {
+        id
+        name
+      }
+      diet
+      dislikes {
+        name
+        id
+        flavor
+        texture
+      }
+      name
+      spicyLevel
+      nutrition {
+        goal
+        preferences {
+          energy {
+            min
+            max
+          }
+          proteins
+          hydrates
+          fats
+        }
+      }
+      products {
+        id
+        quantity
+        allergens
+        category {
+          _id
+          id: slug
+          name
+          slug
+          description
+          order
+          subscriptionPrice
+        }
+        ingredients
+        isPromoted
+        speciality
+        name
+        nutritionFacts {
+          energy
+          fiber
+          hydrates
+          proteins
+          salt
+          saturatedFat
+          sugars
+          totalFat
+        }
+        price
+        slug
+        tags
+      }
+      price
+      productsWhitelist
+    }
+    products {
+      id
+      name
+      quantity
+      slug
+      price
+      subscriptionPrice
+      tags
+      category {
+        _id
+        id: slug
+        name
+        slug
+        description
+        order
+        subscriptionPrice
+      }
+    }
+    maxPriceWithoutChanges
+    hasChanges
+    validUntil
+  }
+  nextSuggestion {
+    id
+    delivery {
+      type
+      address {
+        id
+        firstname
+        lastname
+        street
+        number
+        zipcode
+        city
+        phone
+        floor
+        notes
+      }
+      option {
+        start
+        end
+        price
+        customizedPrice
+        custom
+      }
+      exceptions {
+        day
+        start
+        end
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    salesPlanId
+    isOptIn
+  }
+}

@@ -1,0 +1,8 @@
+query menuProductIds {
+  segmentMenu {
+    id
+    dishes {
+      id
+    }
+  }
+}

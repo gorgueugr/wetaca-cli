@@ -1,0 +1,6 @@
+mutation redeemGiftCard($code: String!) {
+  redeemGiftCard(code: $code) {
+    code
+    amount
+  }
+}

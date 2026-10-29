@@ -1,0 +1,10 @@
+query subscriptionAccountByCustomerWithPayments {
+  subscriptionAccountByCustomer {
+    id
+    isActive
+    pausedUntil
+    payments {
+      reference
+    }
+  }
+}

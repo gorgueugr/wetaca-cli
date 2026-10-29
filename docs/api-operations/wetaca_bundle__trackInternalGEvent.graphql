@@ -1,0 +1,3 @@
+mutation trackInternalGEvent($validCredentials: SignupGoogleCredentials!) {
+  trackInternalGEvent(credentials: $validCredentials)
+}

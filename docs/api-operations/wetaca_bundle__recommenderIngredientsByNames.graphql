@@ -1,0 +1,6 @@
+query recommenderIngredientsByNames($names: [String!]!) {
+  recommenderIngredientsByNames(names: $names) {
+    id
+    names
+  }
+}

@@ -1,0 +1,17 @@
+query pauseSubscriptionQuery {
+  subscriptionAccountByCustomer {
+    id
+    delivery {
+      type
+      option {
+        id
+        start
+        end
+        price
+      }
+    }
+  }
+  nextSuggestion {
+    id
+  }
+}

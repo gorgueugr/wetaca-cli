@@ -1,0 +1,3 @@
+query profileHasEditTastes($profileId: ModelId!) {
+  profileHasEditTastes(profileId: $profileId)
+}

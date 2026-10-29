@@ -1,0 +1,8 @@
+query nextSuggestionIdAndVoucher {
+  nextSuggestion {
+    _id
+    appliedVoucher {
+      code
+    }
+  }
+}

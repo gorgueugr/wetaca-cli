@@ -1,0 +1,38 @@
+mutation editSubscriptionTastesProfile($profileId: ModelId!, $spicyLevel: SpicyLevel!, $allergensInput: SubscriptionProfileEditAllergensInputGraph!, $dislikesInput: SubscriptionProfileEditDislikesInputGraph!) {
+  spicyData: editSubscriptionProfileSpicy(profileId: $profileId, spicyLevel: $spicyLevel) {
+    id
+    name
+    email
+    isActive
+    spicyLevel
+  }
+  dislikesData: editSubscriptionProfileDislikes(profileId: $profileId, input: $dislikesInput) {
+    id
+    name
+    email
+    isActive
+    dislikes {
+      id
+      flavor
+      texture
+      name
+    }
+    otherDislikes {
+      name
+      flavor
+      texture
+    }
+  }
+  allergensData: editSubscriptionProfileAllergens(profileId: $profileId, input: $allergensInput) {
+    id
+    name
+    email
+    isActive
+    diet
+    allergens {
+      id
+      name
+    }
+    otherAllergens
+  }
+}

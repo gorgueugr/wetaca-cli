@@ -1,0 +1,9 @@
+mutation addProductsToSubscriptionProfileBlacklist($profileId: ModelId!, $productsIdsBlacklisted: [Int!]!) {
+  addProductsToSubscriptionProfileBlacklist(profileId: $profileId, productIds: $productsIdsBlacklisted) {
+    id
+    name
+    email
+    isActive
+    productsBlacklist
+  }
+}

@@ -1,0 +1,8 @@
+mutation appendNewPaymentSubscriptionMethod($subscriptionAccountId: ModelId!, $newPaymentSubscriptionMethod: SubscriptionPaymentMethodsInputGraph!) {
+  appendNewPaymentSubscriptionMethod(subscriptionAccountId: $subscriptionAccountId, newPaymentSubscriptionMethod: $newPaymentSubscriptionMethod) {
+    id
+    payments {
+      reference
+    }
+  }
+}

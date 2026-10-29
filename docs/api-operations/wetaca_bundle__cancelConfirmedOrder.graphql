@@ -1,0 +1,6 @@
+mutation cancelConfirmedOrder($orderId: Int!) {
+  cancelConfirmedOrder(orderId: $orderId) {
+    amount
+    outcome
+  }
+}

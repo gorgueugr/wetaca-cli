@@ -1,0 +1,10 @@
+query nextSuggestionVoucherAndPrice {
+  nextSuggestion {
+    appliedVoucher {
+      code
+    }
+    suggestionPricing {
+      toPay
+    }
+  }
+}

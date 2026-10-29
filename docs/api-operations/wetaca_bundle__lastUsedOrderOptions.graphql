@@ -1,0 +1,34 @@
+query lastUsedOrderOptions {
+  lastUsedOrderOptions {
+    delivery {
+      address {
+        id
+        firstname
+        lastname
+        street
+        number
+        zipcode
+        city
+        phone
+        floor
+        notes
+      }
+    }
+    billingAddress {
+      id
+      name
+      lastname
+      country
+      vat
+      street
+      number
+      floor
+      zipcode
+      city
+    }
+    payments {
+      provider
+      reference
+    }
+  }
+}

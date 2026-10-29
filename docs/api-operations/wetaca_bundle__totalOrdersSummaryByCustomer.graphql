@@ -1,0 +1,21 @@
+query totalOrdersSummaryByCustomer {
+  totalOrdersSummaryByCustomer {
+    subscriptionOrdersMetadata {
+      confirmed
+      first {
+        date
+      }
+    }
+    transactionalOrdersMetadata {
+      confirmed
+      first {
+        date
+      }
+    }
+    totalOrders
+    totalDeliveredOrders
+  }
+  getChargingSuggestionMetadata {
+    isChargingIntervalAndSuggestionHasBeenCharged
+  }
+}

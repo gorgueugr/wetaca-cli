@@ -1,0 +1,7 @@
+mutation initPaypalTokenGenerationPaymentIntention($newPaymentIntentionRequest: SimplePaymentIntentionInput!, $redirectUrl: String!) {
+  initPaypalTokenGenerationPaymentIntention(newPaymentIntentionRequest: $newPaymentIntentionRequest, redirectUrl: $redirectUrl) {
+    paymentIntentionId
+    paymentIntentionSliceId
+    paypalInitTokenId
+  }
+}

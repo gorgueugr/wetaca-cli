@@ -1,0 +1,20 @@
+query recommendedArticlesQuery($limit: Int!, $categories: [String]!, $currentSlug: String!) {
+  sameCategory: articleCollection(limit: $limit, where: {slug_not: $currentSlug, categories: {name_in: $categories}}, order: sys_firstPublishedAt_DESC) {
+    total
+    items {
+      title
+      subtitle
+      imageUrl
+      slug
+    }
+  }
+  otherCategory: articleCollection(limit: $limit, where: {slug_not: $currentSlug}, order: sys_firstPublishedAt_DESC) {
+    total
+    items {
+      title
+      subtitle
+      imageUrl
+      slug
+    }
+  }
+}

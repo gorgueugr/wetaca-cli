@@ -1,0 +1,26 @@
+query subscriptionAccountProductsSubscriptionPricing($productIds: [Int!]!, $salesPlanId: ModelId!) {
+  productsSubscriptionAccountPricing(productIds: $productIds, salesPlanId: $salesPlanId) {
+    salesPlanId
+    salesPlanPrices {
+      default {
+        productId
+        productPrice {
+          price
+          categoryPrice
+          subscriptionPrice
+        }
+      }
+      packages {
+        packageOptionIndex
+        productsPrices {
+          productId
+          productPrice {
+            price
+            categoryPrice
+            subscriptionPrice
+          }
+        }
+      }
+    }
+  }
+}

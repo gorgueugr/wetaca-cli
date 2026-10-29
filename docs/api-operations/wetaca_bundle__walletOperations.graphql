@@ -1,0 +1,11 @@
+query walletOperations($limit: Int, $offset: Int) {
+  walletOperations(limit: $limit, offset: $offset) {
+    id
+    date
+    type
+    value
+    reference
+    category
+  }
+  walletBalance
+}

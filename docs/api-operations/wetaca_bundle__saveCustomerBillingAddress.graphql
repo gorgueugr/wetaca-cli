@@ -1,0 +1,5 @@
+mutation saveCustomerBillingAddress($billingAddress: BillingAddressInput!) {
+  saveCustomerBillingAddress(billingAddress: $billingAddress) {
+    id
+  }
+}

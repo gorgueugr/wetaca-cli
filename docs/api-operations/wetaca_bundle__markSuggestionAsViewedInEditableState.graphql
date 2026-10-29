@@ -1,0 +1,3 @@
+mutation markSuggestionAsViewedInEditableState($suggestionId: ModelId!) {
+  markSuggestionAsViewedInEditableState(suggestionId: $suggestionId)
+}

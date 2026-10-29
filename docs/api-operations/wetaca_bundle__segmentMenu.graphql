@@ -1,0 +1,89 @@
+query segmentMenu($segmentId: ModelId, $menuId: ModelId, $salesPlanPackageOptionIndex: Int, $zipcode: Int, $includeDishes: [Int!], $menuDishesFilter: MenuDishesFilter, $dateTo: DateTime, $isSubscriptionIntent: Boolean) {
+  segmentMenu(segmentId: $segmentId, menuId: $menuId, salesPlanPackageOptionIndex: $salesPlanPackageOptionIndex, zipcode: $zipcode, includeDishes: $includeDishes, menuDishesFilter: $menuDishesFilter, dateTo: $dateTo, isSubscriptionIntent: $isSubscriptionIntent) {
+    id
+    dateFrom
+    dateTo
+    week
+    year
+    dishes {
+      datePublished
+      id
+      name
+      slug
+      price
+      subscriptionPrice
+      category {
+        _id
+        id: slug
+        name
+        slug
+        description
+        order
+        subscriptionPrice
+      }
+      tags
+      ingredients
+      ingredientsBreakdown
+      allergens
+      isNew
+      features
+      specialTemplate
+      isPromoted
+      speciality
+      frontPage
+      weight
+      nutritionFacts {
+        energy
+        totalFat
+        saturatedFat
+        proteins
+        hydrates
+        sugars
+        fiber
+        salt
+      }
+      suitableForProfile
+      suitableForProfileLikes
+    }
+    otherDishes {
+      datePublished
+      id
+      name
+      slug
+      price
+      subscriptionPrice
+      category {
+        _id
+        id: slug
+        name
+        slug
+        description
+        order
+        subscriptionPrice
+      }
+      tags
+      ingredients
+      ingredientsBreakdown
+      allergens
+      isNew
+      features
+      specialTemplate
+      isPromoted
+      speciality
+      frontPage
+      weight
+      nutritionFacts {
+        energy
+        totalFat
+        saturatedFat
+        proteins
+        hydrates
+        sugars
+        fiber
+        salt
+      }
+      suitableForProfile
+      suitableForProfileLikes
+    }
+  }
+}

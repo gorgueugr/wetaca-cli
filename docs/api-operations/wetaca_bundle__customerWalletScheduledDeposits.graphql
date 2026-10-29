@@ -1,0 +1,15 @@
+query customerWalletScheduledDeposits {
+  customerWalletScheduledDeposits {
+    id
+    customerId
+    dateCreated
+    paymentCreditCard
+    amount
+    schedule {
+      type
+      dayOfWeek
+      dayOfMonth
+      hour
+    }
+  }
+}

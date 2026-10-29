@@ -1,0 +1,6 @@
+mutation confirmDeliveryReschedule($id: Int!, $optionId: Int!, $address: DeliveryRescheduleAddressInput!, $persistAddress: Boolean!) {
+  confirmDeliveryReschedule(id: $id, optionId: $optionId, address: $address, persistAddress: $persistAddress) {
+    id
+    status
+  }
+}

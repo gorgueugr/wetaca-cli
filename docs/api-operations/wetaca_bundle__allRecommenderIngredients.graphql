@@ -1,0 +1,6 @@
+query allRecommenderIngredients {
+  recommenderIngredients {
+    id
+    names
+  }
+}

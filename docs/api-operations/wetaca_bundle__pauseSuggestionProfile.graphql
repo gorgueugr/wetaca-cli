@@ -1,0 +1,6 @@
+mutation pauseSuggestionProfile($profileSuggestionId: ModelId!) {
+  paused: pauseSuggestionProfile(profileSuggestionId: $profileSuggestionId) {
+    id
+    skip
+  }
+}

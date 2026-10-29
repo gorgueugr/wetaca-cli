@@ -1,0 +1,7 @@
+mutation modifyConfirmedOrderProducts($orderId: Int!, $productModifications: [ProductModificationInput!]!) {
+  modifyConfirmedOrderProducts(orderId: $orderId, productModifications: $productModifications) {
+    newPrice
+    outcome
+    amount
+  }
+}

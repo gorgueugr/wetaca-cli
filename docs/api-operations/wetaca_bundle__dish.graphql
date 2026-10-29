@@ -1,0 +1,39 @@
+query dish($slug: String!) {
+  dish(slug: $slug) {
+    datePublished
+    id
+    name
+    slug
+    weight
+    available
+    category {
+      _id
+      name
+      id: slug
+      slug
+      subscriptionPrice
+    }
+    description
+    price
+    subscriptionPrice
+    ingredients
+    allergens
+    tags
+    isPromoted
+    speciality
+    features
+    specialTemplate
+    customerRating
+    customerRatingCount
+    nutritionFacts {
+      energy
+      totalFat
+      saturatedFat
+      proteins
+      hydrates
+      sugars
+      fiber
+      salt
+    }
+  }
+}

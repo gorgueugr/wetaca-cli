@@ -1,0 +1,5 @@
+mutation changeSubscriptionOptInMode($isOptInEnabled: Boolean!) {
+  changeSubscriptionOptInMode(isOptInEnabled: $isOptInEnabled) {
+    optInSuggestions
+  }
+}

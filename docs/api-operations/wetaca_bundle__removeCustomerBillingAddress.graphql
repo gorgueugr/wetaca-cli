@@ -1,0 +1,3 @@
+mutation removeCustomerBillingAddress($billingAddressId: ModelId!) {
+  removeCustomerBillingAddress(billingAddressId: $billingAddressId)
+}

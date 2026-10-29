@@ -1,0 +1,15 @@
+query categoriesQuery {
+  articleCategoryCollection(order: sys_firstPublishedAt_ASC) {
+    items {
+      sys {
+        id
+      }
+      name
+      linkedFrom {
+        entryCollection {
+          total
+        }
+      }
+    }
+  }
+}

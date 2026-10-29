@@ -1,0 +1,5 @@
+mutation editSuggestionDelivery($suggestionId: ModelId!, $suggestionDeliveryInput: EditSuggestionDeliveryGraph!) {
+  editSuggestionDelivery(suggestionId: $suggestionId, suggestionDeliveryInput: $suggestionDeliveryInput) {
+    id
+  }
+}

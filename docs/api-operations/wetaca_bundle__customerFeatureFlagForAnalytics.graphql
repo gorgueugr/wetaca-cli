@@ -1,0 +1,8 @@
+query customerFeatureFlagForAnalytics($slug: String!) {
+  customerFeatureFlagForAnalytics(slug: $slug) {
+    slug
+    defaultValue
+    overrideValue
+    userValue
+  }
+}

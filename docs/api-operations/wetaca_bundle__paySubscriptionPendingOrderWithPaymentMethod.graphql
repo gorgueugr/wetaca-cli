@@ -1,0 +1,6 @@
+mutation paySubscriptionPendingOrderWithPaymentMethod($pendingOrderId: ModelId!, $paymentMethodId: ModelId!) {
+  paySubscriptionPendingOrderWithPaymentMethod(pendingOrderId: $pendingOrderId, paymentMethodId: $paymentMethodId) {
+    ok
+    error
+  }
+}

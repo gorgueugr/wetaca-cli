@@ -1,0 +1,3 @@
+mutation signUp($validCredentials: SignupCredentialsWithCode!, $signUpWithoutPasswordMode: Boolean) {
+  apiToken: signUp(credentialsWithCode: $validCredentials, signUpWithoutPasswordMode: $signUpWithoutPasswordMode)
+}

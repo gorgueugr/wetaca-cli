@@ -1,0 +1,38 @@
+query getSubscriptionAccountDeliveryConfigurationProductAvailability {
+  getSubscriptionAccountDeliveryConfigurationProductAvailability {
+    optionsWithRestrictions {
+      _id
+      id
+      maxQuantity
+      configurationDay
+      deliveryDateDay
+      start
+      end
+      configurationDate {
+        start
+        end
+      }
+      exception {
+        start
+        end
+        day
+        from {
+          year
+          month
+          dayOfMonth
+        }
+      }
+    }
+    exceptions {
+      day
+      start
+      end
+      from {
+        year
+        month
+        dayOfMonth
+      }
+    }
+    maxTotalQuantityRestriction
+  }
+}

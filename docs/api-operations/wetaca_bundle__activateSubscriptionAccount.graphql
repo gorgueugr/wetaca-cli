@@ -1,0 +1,45 @@
+mutation activateSubscriptionAccount($subscriptionAccountId: ModelId!) {
+  subscriptionAccount: activateSubscriptionAccount(subscriptionAccountId: $subscriptionAccountId) {
+    id
+    delivery {
+      address {
+        id
+        firstname
+        lastname
+        street
+        number
+        zipcode
+        city
+        phone
+        floor
+        notes
+      }
+      option {
+        start
+        end
+        price
+        customizedPrice
+        custom
+      }
+    }
+    billingAddress {
+      id
+      name
+      lastname
+      country
+      vat
+      street
+      number
+      floor
+      zipcode
+      city
+    }
+    payments {
+      provider
+      reference
+    }
+    isActive
+    pausedUntil
+    segmentId
+  }
+}

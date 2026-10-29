@@ -1,0 +1,6 @@
+mutation updateSubscriptionProfileName($profileId: ModelId!, $name: String!) {
+  updateSubscriptionProfileName(profileId: $profileId, name: $name) {
+    id
+    name
+  }
+}

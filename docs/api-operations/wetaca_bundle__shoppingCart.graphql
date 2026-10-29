@@ -1,0 +1,18 @@
+query shoppingCart {
+  shoppingCart {
+    dateUpdated
+    products {
+      id
+      name
+      price
+      slug
+      quantity
+      isPromoted
+      category {
+        id: slug
+        name
+        slug
+      }
+    }
+  }
+}

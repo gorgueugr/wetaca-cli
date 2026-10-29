@@ -1,0 +1,3 @@
+mutation linkGoogleAccountPhone($tokenId: String!, $phoneNumber: String!, $code: String!, $fingerprint: String, $newsletter: Boolean) {
+  linkGoogleAccountPhone(tokenId: $tokenId, phoneNumber: $phoneNumber, code: $code, fingerprint: $fingerprint, newsletter: $newsletter)
+}

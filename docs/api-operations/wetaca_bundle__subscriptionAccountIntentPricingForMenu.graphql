@@ -1,0 +1,134 @@
+query subscriptionAccountIntentPricingForMenu($subscriptionAccountInput: SubscriptionAccountInputGraphWithoutPayments!, $profiles: [SubscriptionProfileInputGraph!]!, $voucherCode: String) {
+  subscriptionAccountIntentPricing(subscriptionAccountInput: $subscriptionAccountInput, profiles: $profiles, voucherCode: $voucherCode) {
+    partialIntentPrices {
+      profiles {
+        name
+        transactional
+        subscription
+        toPay
+      }
+      profilesTotal {
+        transactional
+        subscription
+        toPay
+      }
+      shipping
+      shippingBreakdown {
+        discount
+        customDifference
+        toPay
+      }
+      salesPlanDiscount
+      vouchers
+      subscription {
+        subtotal
+        total
+      }
+      transactional {
+        subtotal
+        total
+      }
+      toPay
+      appliedSalesPlanDiscount {
+        appliedDiscount
+        discount {
+          price
+          percent
+          maximum
+        }
+      }
+      appliedVouchers {
+        code
+        tagNames
+        appliedDiscount
+        discount {
+          price
+          percent
+        }
+      }
+      voucherApplyErrors {
+        ... on ApplyVoucherValidationError {
+          errorCode
+          description
+          validationDetails {
+            validationIssue
+            voucher {
+              code
+              restrict {
+                maximumAmount
+                minimumAmount
+                firstOrder
+              }
+            }
+          }
+        }
+        ... on GraphError {
+          errorCode
+        }
+      }
+    }
+    segment {
+      _id
+      name
+      slug
+      tag
+    }
+    salesPlan {
+      _id
+      id
+      minProfilesPriceValidation {
+        minPrice
+        result
+        remainingAmount
+      }
+      packageOption {
+        index
+        categoryRestrictions {
+          categories
+          restriction {
+            min
+            max
+          }
+        }
+        shippingSubscriptionDiscount {
+          assumed
+        }
+        baseCategory
+        baseCategoryPrice
+      }
+      packageValidation {
+        result
+        restrictions {
+          categories
+          result
+          remaining
+        }
+      }
+      upselling {
+        packageOption {
+          index
+          categoryRestrictions {
+            categories
+            restriction {
+              min
+              max
+            }
+          }
+          shippingSubscriptionDiscount {
+            assumed
+          }
+          baseCategory
+          baseCategoryPrice
+        }
+        packageValidation {
+          result
+          restrictions {
+            categories
+            result
+            remaining
+          }
+        }
+      }
+    }
+  }
+}

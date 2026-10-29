@@ -1,0 +1,17 @@
+query addressesInManager($orderId: Int) {
+  addresses {
+    id
+    firstname
+    lastname
+    street
+    number
+    zipcode
+    city
+    phone
+    floor
+    notes
+    isSubscriptionAddress
+    isSuggestionAddress
+    canChangeOrderDeliveryToAddress(orderId: $orderId)
+  }
+}

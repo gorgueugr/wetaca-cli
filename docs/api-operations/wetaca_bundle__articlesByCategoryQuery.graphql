@@ -1,0 +1,13 @@
+query articlesByCategoryQuery($categoryId: String, $pageLimit: Int, $skip: Int) {
+  articleCollection(where: {categories: {sys: {id: $categoryId}}}, order: sys_firstPublishedAt_DESC, limit: $pageLimit, skip: $skip) {
+    total
+    skip
+    limit
+    items {
+      title
+      excerpt
+      slug
+      imageUrl
+    }
+  }
+}

@@ -1,0 +1,47 @@
+query transactionalSegmentMenu($segmentId: ModelId) {
+  transactionalSegmentMenu(segmentId: $segmentId) {
+    id
+    dateFrom
+    dateTo
+    week
+    year
+    dishes {
+      datePublished
+      id
+      name
+      slug
+      price
+      subscriptionPrice
+      category {
+        _id
+        id: slug
+        name
+        slug
+        description
+        order
+        subscriptionPrice
+      }
+      tags
+      ingredients
+      ingredientsBreakdown
+      allergens
+      isNew
+      features
+      specialTemplate
+      isPromoted
+      speciality
+      frontPage
+      weight
+      nutritionFacts {
+        energy
+        totalFat
+        saturatedFat
+        proteins
+        hydrates
+        sugars
+        fiber
+        salt
+      }
+    }
+  }
+}

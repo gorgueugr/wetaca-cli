@@ -1,0 +1,9 @@
+mutation assignNextSuggestionVoucher($voucherCode: String, $skipVoucher: Boolean!, $suggestionId: ModelId!) {
+  assignNextSuggestionVoucher(voucherCode: $voucherCode, skipVoucher: $skipVoucher, suggestionId: $suggestionId) {
+    appliedVoucher {
+      code
+      appliedDiscount
+    }
+    skipVoucher
+  }
+}

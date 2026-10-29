@@ -1,0 +1,19 @@
+query validateSegment($segmentSlug: String!, $email: String) {
+  validateSegment(segmentSlug: $segmentSlug, email: $email) {
+    _id
+    slug
+    tag
+    subscription {
+      enabled
+    }
+    transactional {
+      enabled
+    }
+    activeStandardSalesPlan {
+      _id
+    }
+    activeEntrySalesPlan {
+      _id
+    }
+  }
+}

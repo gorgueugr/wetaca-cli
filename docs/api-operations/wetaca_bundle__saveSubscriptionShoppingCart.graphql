@@ -1,0 +1,5 @@
+mutation saveSubscriptionShoppingCart($products: [CartProductInput!]!, $total: Int!, $shipping: Int!, $vouchers: [CartVoucherInput!]!) {
+  saveSubscriptionShoppingCart(products: $products, total: $total, shipping: $shipping, vouchers: $vouchers) {
+    id
+  }
+}
