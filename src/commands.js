@@ -642,7 +642,10 @@ export async function walletShow(args, flags, ctx) {
 // ---------- vouchers apply / gift cards ----------
 
 // `vouchers apply CODE` / `vouchers skip` — applies (or explicitly skips) a voucher
-// on next week's suggestion.
+// on next week's suggestion. NOTE: the API implements `skip` as skipVoucher=true,
+// which ALSO sets suggestion.skip=true (pauses next week's delivery). Verified live
+// 2026-10-29 — `vouchers skip` == `suggestion pause` + explicit no-voucher.
+// Revert with `suggestion resume`.
 export async function vouchersApply(args, flags, ctx) {
   const skip = args[0] === 'skip' || flags.skip === true;
   const code = skip ? undefined : args[0];
@@ -650,7 +653,9 @@ export async function vouchersApply(args, flags, ctx) {
   const sid = flags.suggestion || await nextSuggestionId(ctx.profile, ctx.debug);
   const payload = { voucherCode: skip ? undefined : code, skipVoucher: skip, suggestionId: sid };
   if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'assignNextSuggestionVoucher', variables: payload } };
-  await confirm(flags, skip ? `Skip voucher on next week's delivery (suggestion ${sid}).` : `Apply voucher ${code} to next week's delivery (suggestion ${sid}).`);
+  await confirm(flags, skip
+    ? `Skip voucher on next week's delivery (suggestion ${sid}). WARNING: the API also pauses next week's delivery (skipVoucher=true sets suggestion.skip). Revert with: wetaca suggestion resume.`
+    : `Apply voucher ${code} to next week's delivery (suggestion ${sid}).`);
   const d = await gql(Q.ASSIGN_NEXT_SUGGESTION_VOUCHER, payload, { profile: ctx.profile, debug: ctx.debug });
   const r = d.assignNextSuggestionVoucher || {};
   return {

@@ -58,7 +58,10 @@ Every command returns JSON on stdout by default; errors go to stderr.
   wetaca vouchers list
   wetaca vouchers current            voucher applied to next week (if any)
   wetaca vouchers apply <CODE>       apply a voucher to next week (--dry-run first, then --yes)
-  wetaca vouchers skip               explicitly use no voucher next week
+  wetaca vouchers skip               explicitly use no voucher next week (WARNING: the API
+                                     implements this as skipVoucher=true, which ALSO pauses
+                                     next week's delivery — same effect as suggestion pause.
+                                     Revert with: wetaca suggestion resume)
   wetaca giftcards show | redeem <CODE>   gift card limits / redeem into wallet
   wetaca wallet
   wetaca config path | list | get <k> | set <k> <v>
