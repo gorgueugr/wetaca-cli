@@ -11,11 +11,12 @@ jobs:
       contents: read
       id-token: write # npm provenance (OIDC)
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
-      # sin registry-url: npm >= 11.15 usa Trusted Publishing (OIDC) automaticamente
+          registry-url: https://registry.npmjs.org/
+          package-manager-cache: false # nunca cachar en builds de release
       - name: Version matches tag
         run: |
           TAG="${GITHUB_REF_NAME#v}"
