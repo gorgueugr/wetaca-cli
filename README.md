@@ -26,7 +26,17 @@ npm install -g wetaca-cli    # from npm
 wetaca doctor
 ```
 
-Or from the repo: `npm install -g .`
+Or from this repo: `npm install -g .`
+
+## For AI agents
+
+Point your agent at this repo and it will find `AGENTS.md` (Claude Code, Codex, Cursor, OpenCode, Jules, Hermes all read it automatically). The canonical contract for agents is embedded in the binary:
+
+```
+wetaca skills get wetaca-usage
+```
+
+A portable skill file is also available at [`skill/SKILL.md`](skill/SKILL.md) for platforms with skill directories (Hermes: `hermes skills install https://raw.githubusercontent.com/gorgueugr/wetaca-cli/master/skill/SKILL.md`).
 
 ## Get started
 
@@ -71,6 +81,7 @@ wetaca skills get wetaca-usage
 | [Specification](docs/cli-spec.md) | every command, flag, exit code and GraphQL operation |
 | [Extracted operations](docs/api-operations/) | the ~190 GraphQL documents from Wetaca's website |
 | [Agent guide](docs/agent-guide.md) | `wetaca skills get wetaca-usage` |
+| [Agent skill](skill/SKILL.md) | portable SKILL.md for skill hubs (Hermes, Claude Code, OpenCode...) |
 
 ## Good to know
 

@@ -10,6 +10,8 @@
     "bin",
     "src",
     "docs",
+    "skill",
+    "AGENTS.md",
     "README.md",
     "LICENSE"
   ],

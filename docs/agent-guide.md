@@ -1,71 +1,75 @@
-# wetaca-cli — guía para agentes IA
+# wetaca-cli — guide for AI agents
 
-Gestiona la cuenta de Wetaca (suscripción de comida semanal) del usuario desde el terminal.
-Todo comando devuelve JSON en stdout por defecto; los errores van a stderr.
+Manage the user's Wetaca account (weekly meal subscription) from the terminal.
+Every command returns JSON on stdout by default; errors go to stderr.
 
-## Antes de empezar
+## Before you start
 
-1. Ejecuta `wetaca doctor` para verificar node, conectividad y sesión.
-2. `wetaca auth status` dice si hay sesión válida. Si no la hay:
-   - `wetaca auth login --cookies cookies.txt` (export con la extensión Cookie-Editor sobre wetaca.com logueado) o `--refresh-token COOKIE` (cookie de wetaca.com, dura ~120 días; el CLI renueva el token solo). Sin contraseña.
-   - `wetaca auth login --token T` o `--token --clipboard`: token copiado de la cabecera
-     `authorization: Bearer …` de cualquier petición a api.wetaca.com en las DevTools del
-     usuario (F12 → Network). Es la vía si su cuenta entra con Google.
-   No pidas al usuario la contraseña de Google ni automatices su navegador para el login.
+1. Run `wetaca doctor` to check node, connectivity and session.
+2. `wetaca auth status` tells you whether there is a valid session. If there isn't:
+   - `wetaca auth login --cookies cookies.txt` (export with the Cookie-Editor extension on wetaca.com while logged in) or `--refresh-token COOKIE` (a wetaca.com cookie, lasts ~120 days; the CLI renews the token on its own). No password involved.
+   - `wetaca auth login --token T` or `--token --clipboard`: token copied from the
+     `authorization: Bearer *** header of any request to api.wetaca.com in the
+     user's DevTools (F12 → Network). This is the way to go if their account logs in with Google.
+   Never ask the user for their Google password and never automate their browser for the login.
 
-## Contrato de salida
+## Output contract
 
-- stdout: JSON (`--format pretty` para humanos, `jsonl` para listas línea a línea).
-- `--error-format json`: envoltorio de error { error: { code, category, reason, retryable, message, suggested_commands } }.
-- Exit codes estables: 0 ok · 1 inesperado · 2 uso/validación/confirmación denegada · 3 auth ·
-  4 red · 5 no encontrado · 6 la API rechazó la operación · 7 deriva de contrato (schema cambiado).
-- `reason: "auth_required"` → nada que reintentar; el usuario debe hacer login.
-- `reason: "contract_drift"` → no reinventes la query; abre issue en el repo.
+- stdout: JSON (`--format pretty` for humans, `jsonl` for lists, one line each).
+- `--error-format json`: error wrapper { error: { code, category, reason, retryable, message, suggested_commands } }.
+- Stable exit codes: 0 ok · 1 unexpected · 2 usage/validation/confirmation denied · 3 auth ·
+  4 network · 5 not found · 6 the API rejected the operation · 7 contract drift (schema changed).
+- `reason: "auth_required"` → nothing to retry; the user must log in.
+- `reason: "contract_drift"` → don't reinvent the query; open an issue on the repo.
 
-## Reglas para operaciones con efectos reales
+## Rules for operations with real effects
 
-1. Nada cambia la cuenta sin confirmación: sin terminal, exige `--yes`. Pasa `--yes` SOLO cuando
-   el usuario pidió exactamente esa operación y vio el resumen.
-2. Usa `--dry-run` en `suggestion edit` y `orders cancel` para mostrar qué se enviaría, antes de pedir confirmación.
-3. `suggestion pause` salta la entrega de la semana próxima (la semana ya cobrada NO se toca).
-   `subscription pause --weeks N` pausa la suscripción N semanas (cancelación temporal);
-   `subscription resume` la reactiva.
-4. `orders cancel <id>` cancela un pedido confirmado y devuelve el importe. Ids: `deliveries next`
-   (pedidos pendientes) y `orders list` (histórico).
-5. Nunca gestiones pagos: wetaca-cli no toca tarjetas ni pagos pendientes de Redsys/PayPal.
-   Si `nextPaymentPendingOrder` no es null, dilo al usuario y que lo pague en wetaca.com.
+1. Nothing changes the account without confirmation: without a terminal, `--yes` is required. Pass `--yes` ONLY when
+   the user asked for exactly that operation and saw the summary.
+2. Use `--dry-run` on `suggestion edit` and `orders cancel` to show what would be sent, before asking for confirmation.
+3. `suggestion pause` skips next week's delivery (the already-billed week is NOT touched).
+   `subscription pause --weeks N` pauses the subscription for N weeks (temporary cancellation);
+   `subscription resume` reactivates it.
+4. `orders cancel <id>` cancels a confirmed order and refunds the amount. Ids: `deliveries next`
+   (pending orders) and `orders list` (history).
+5. Never manage payments: wetaca-cli does not touch cards or pending Redsys/PayPal payments.
+   If `nextPaymentPendingOrder` is not null, tell the user and have them pay on wetaca.com.
 
-## Comandos
+## Commands
 
   wetaca auth login [--refresh-token COOKIE | --token T] | status | logout
-  wetaca me                          resumen: cliente + suscripción + cartera
+  wetaca me                          summary: customer + subscription + wallet
   wetaca subscription show | pause [--weeks N] [--feedback S] | resume
-  wetaca suggestion show             menú de la semana próxima por perfil, precios, ventana de entrega
-  wetaca suggestion pause | resume   saltar / reactivar la semana próxima
-  wetaca suggestion edit --profile-suggestion ID --set "productId:cant,..." [--dry-run]
-  wetaca deliveries next             sugerencias y pedidos pendientes (ids para orders/cancel)
+  wetaca suggestion show             next week's menu per profile, prices, delivery window
+  wetaca suggestion pause | resume   skip / reactivate next week
+  wetaca suggestion edit --profile-suggestion ID --set "productId:qty,..." [--dry-run]
+  wetaca deliveries next             suggestions and pending orders (ids for orders/cancel)
   wetaca orders list [--limit N] | show <id> | cancel <id> [--dry-run]
-  wetaca menu list                    platos de la semana (ids para suggestion edit)
-  wetaca dish show <slug>             detalle/ingredientes de un plato
-  wetaca deliveries options           franjas de entrega disponibles para tu CP
-  wetaca deliveries set-option <id> --dry-run   cambia la franja (revisa y repite con --yes)
-  wetaca profiles list                tus perfiles y su menú
-  wetaca profiles pause <id|nombre>   pausa un perfil (dry-run antes)
+  wetaca menu list                    dishes of the week (ids for suggestion edit)
+  wetaca dish show <slug>             details/ingredients of a dish
+  wetaca deliveries options           delivery slots available for your zip code
+  wetaca deliveries set-option <id> --dry-run   changes the slot (review and repeat with --yes)
+  wetaca profiles list                your profiles and their menu
+  wetaca profiles pause <id|name>     pauses a profile (dry-run first)
   wetaca addresses list
-  wetaca addresses save --street C --number N [--floor F] --zipcode CP --city CIUDAD --dry-run
-     (revisa el plan; repite con --yes; opcional --notes --firstname --lastname --phone)
-  wetaca addresses remove <id>        borra una dirección no en uso
+  wetaca addresses save --street C --number N [--floor F] --zipcode ZIP --city CITY --dry-run
+     (review the plan; repeat with --yes; optional --notes --firstname --lastname --phone)
+  wetaca addresses remove <id>        deletes an address not in use
   wetaca vouchers list
+  wetaca vouchers current            voucher applied to next week (if any)
+  wetaca vouchers apply <CODE>       apply a voucher to next week (--dry-run first, then --yes)
+  wetaca vouchers skip               explicitly use no voucher next week
+  wetaca giftcards show | redeem <CODE>   gift card limits / redeem into wallet
   wetaca wallet
   wetaca config path | list | get <k> | set <k> <v>
   wetaca doctor
-  wetaca skills get wetaca-usage     esta guía
+  wetaca skills get wetaca-usage     this guide
 
-## Flujos típicos
+## Typical flows
 
-- "¿Qué toca esta semana?": `wetaca suggestion show --format pretty`
-- "Esta semana no quiero arroz": `suggestion show` → localiza el plato y su `productSuggestionId`
-  (`profileSuggestionId`) y `productId` → `suggestion edit --profile-suggestion ID --set "..." --dry-run`
-  → muestra el plan → confirma → ejecuta con `--yes`.
-- "Vacaciones dos semanas": `subscription pause --weeks 2` (resumen → --yes) y luego `subscription resume`.
-- "Cancela el pedido de mañana": `deliveries next` → `orders cancel <id>`.
+- "What's on this week?": `wetaca suggestion show --format pretty`
+- "I don't want rice this week": `suggestion show` → locate the dish and its `productSuggestionId`
+  (`profileSuggestionId`) and `productId` → `suggestion edit --profile-suggestion ID --set "..." --dry-run`
+  → show the plan → confirm → run with `--yes`.
+- "Vacation for two weeks": `subscription pause --weeks 2` (summary → --yes) and then `subscription resume`.
+- "Cancel tomorrow's order": `deliveries next` → `orders cancel <id>`.
