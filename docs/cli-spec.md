@@ -30,12 +30,16 @@ auth        login [--email E --password P | --token T [--clipboard]] | status | 
 me          show
 subscription  show | pause [--weeks N] [--feedback S] | resume
 suggestion  show | pause [--feedback S] | resume | edit --profile-suggestion ID --set "id:cant,..."
-deliveries  next
+deliveries  next | options [--zipcode CP] | set-option <id>
+menu        list [--zipcode CP]            menú semanal (ids de platos para suggestion edit)
+dish        show <slug>                    detalle de un plato
+profiles    list | pause <id|nombre> | resume <id|nombre>
 orders      list [--limit N] [--offset N] | show <id> | cancel <id>
-addresses   list | save --street C --number N [--floor F] --zipcode CP --city CIUDAD
+addresses   list | save --street C --number N [--floor F] --zipcode CP --city CIUDAD | remove <id>
             save crea la dirección y la asigna a la suscripción y a la semana próxima
             (flujo de la web: saveAddress → editDeliveryAccountInfo → editSuggestionDelivery);
             opcional --notes --firstname --lastname --phone; confirmación salvo --yes
+            remove solo borra direcciones no en uso
 vouchers    list
 wallet      show
 config      path | list | get <k> | set <k> <v>

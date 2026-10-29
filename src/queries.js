@@ -172,6 +172,55 @@ export const EDIT_SUGGESTION_DELIVERY = `mutation editSuggestionDelivery($sugges
   editSuggestionDelivery(suggestionId: $suggestionId, suggestionDeliveryInput: $suggestionDeliveryInput) { id }
 }`;
 
+// ---------- catálogo ----------
+export const SEGMENT_MENU = `query segmentMenu($zipcode: Int, $isSubscriptionIntent: Boolean) {
+  segmentMenu(zipcode: $zipcode, isSubscriptionIntent: $isSubscriptionIntent) {
+    id week year dateFrom dateTo
+    dishes {
+      id name slug price subscriptionPrice isNew available tags
+      category { name slug }
+    }
+  }
+}`;
+
+export const DISH = `query dish($slug: String!) {
+  dish(slug: $slug) {
+    id name slug available
+    description price subscriptionPrice
+    ingredients allergens tags features
+    customerRating customerRatingCount
+    category { name slug }
+  }
+}`;
+
+// ---------- franja de entrega ----------
+export const DELIVERY_OPTIONS = `query deliveryOptionsByZipcode($zipcode: Int!) {
+  deliveryOptions: deliveryOptionsByZipcode(zipcode: $zipcode) { id start end price }
+}`;
+
+export const REMOVE_ADDRESS = `mutation removeAddress($addressId: Int!) {
+  removeAddress(addressId: $addressId) { id }
+}`;
+
+// ---------- perfiles ----------
+export const PROFILES = `query profiles {
+  subscriptionAccountByCustomer {
+    id isActive pausedUntil
+    profiles {
+      id name email isActive
+      products { id name quantity price subscriptionPrice }
+    }
+  }
+}`;
+
+export const PAUSE_PROFILE = `mutation pauseProfile($profileId: ModelId!) {
+  pauseProfile(profileId: $profileId) { id name isActive }
+}`;
+
+export const RESUME_PROFILE = `mutation resumeProfile($profileId: ModelId!) {
+  resumeProfile(profileId: $profileId) { id name isActive }
+}`;
+
 export const VOUCHERS = `query customerVouchersCli {
   vouchers(limit: 50, skipExpired: false, skipFuture: false) {
     code dateTo remainingUses isReferral

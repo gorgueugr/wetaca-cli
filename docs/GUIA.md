@@ -54,6 +54,26 @@ wetaca subscription resume                  # reactiva
 wetaca subscription show                    # estado actual
 ```
 
+### Ver el menú de la semana y elegir platos
+```bash
+wetaca menu list                                  # 43 platos con id, categoría y precio
+wetaca menu list | jq '.dishes[] | select(.category.slug=="entrantes") | {id, name}'
+wetaca dish show lasana-de-pavo-y-pesto           # ingredientes, alérgenos, descripción
+```
+
+### Cambiar la franja de entrega
+```bash
+wetaca deliveries options                         # franjas disponibles (la actual sale con isCurrent)
+wetaca deliveries set-option 117 --dry-run        # simula
+wetaca deliveries set-option 117 --yes            # aplica a suscripción + semana próxima
+```
+
+### Perfiles
+```bash
+wetaca profiles list
+wetaca profiles pause <id|nombre> --dry-run       # pausa solo ese perfil
+```
+
 ### Cambiar la dirección de entrega
 ```bash
 # simulación del plan exacto (nada se toca)

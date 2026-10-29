@@ -364,6 +364,124 @@ export async function addrSave(args, flags, ctx) {
   };
 }
 
+// ---------- catálogo ----------
+
+// Menú semanal disponible para tu CP (los ids son los que usa suggestion edit --set)
+export async function menuList(args, flags, ctx) {
+  const zipcode = flags.zipcode != null ? parseInt(flags.zipcode, 10) : undefined;
+  const d = await gql(Q.SEGMENT_MENU, { zipcode, isSubscriptionIntent: true }, { profile: ctx.profile, debug: ctx.debug });
+  const m = d.segmentMenu;
+  if (!m) throw new CliError(EXIT.NOT_FOUND, 'No hay menú disponible para ese código postal.', { reason: 'no_menu' });
+  return { week: m.week, year: m.year, dateFrom: m.dateFrom, dateTo: m.dateTo, dishes: m.dishes };
+}
+
+export async function dishShow(args, flags, ctx) {
+  const slug = args[0];
+  if (!slug) throw usageError('Uso: wetaca dish show <slug>  (los slugs salen de `wetaca menu list`)');
+  const d = await gql(Q.DISH, { slug }, { profile: ctx.profile, debug: ctx.debug });
+  if (!d.dish) throw new CliError(EXIT.NOT_FOUND, `No existe el plato '${slug}'.`, { reason: 'not_found' });
+  return d.dish;
+}
+
+// ---------- franja de entrega ----------
+
+export async function delivOptions(args, flags, ctx) {
+  const cur = await gql(Q.DELIVERY_CONFIG, {}, { profile: ctx.profile, debug: ctx.debug });
+  const zipcode = flags.zipcode != null ? parseInt(flags.zipcode, 10) : cur.subscriptionAccountByCustomer?.delivery?.address?.zipcode;
+  if (!zipcode) throw usageError('No pude leer tu CP; pásalo con --zipcode.');
+  const d = await gql(Q.DELIVERY_OPTIONS, { zipcode }, { profile: ctx.profile, debug: ctx.debug });
+  const currentId = cur.subscriptionAccountByCustomer?.delivery?.option?.id;
+  return d.deliveryOptions.map((o) => ({ ...o, isCurrent: o.id === currentId, priceEur: cents(o.price) }));
+}
+
+// Cambia la franja de entrega (option) para la suscripción y la semana próxima.
+export async function delivSetOption(args, flags, ctx) {
+  const optionId = parseInt(requireId(args[0], '<option-id>'), 10);
+  if (!Number.isInteger(optionId)) throw usageError('El id de franja debe ser numérico (salen de `wetaca deliveries options`).');
+  const cur = await gql(Q.DELIVERY_CONFIG, {}, { profile: ctx.profile, debug: ctx.debug });
+  const sub = cur.subscriptionAccountByCustomer;
+  const suggestion = cur.nextSuggestion;
+  const curOption = sub?.delivery?.option;
+  if (!curOption) throw new CliError(EXIT.DRIFT, 'No pude leer la franja actual.', { reason: 'no_delivery_option' });
+  const opts = await gql(Q.DELIVERY_OPTIONS, { zipcode: sub?.delivery?.address?.zipcode }, { profile: ctx.profile, debug: ctx.debug });
+  const opt = (opts.deliveryOptions || []).find((o) => o.id === optionId);
+  if (!opt) throw new CliError(EXIT.NOT_FOUND,
+    `La franja ${optionId} no está disponible para tu CP. Disponibles: ${(opts.deliveryOptions || []).map((o) => o.id).join(', ')}`,
+    { reason: 'option_not_available' });
+  const deliveryConfiguration = { optionConfiguration: { deliveryOptionId: optionId, addressId: sub?.delivery?.address?.id } };
+  const plan = {
+    option: opt,
+    subscription: { mutation: 'editDeliveryAccountInfo', deliveryConfiguration },
+    suggestion: suggestion ? { mutation: 'editSuggestionDelivery', suggestionId: suggestion.id, deliveryConfiguration } : null,
+  };
+  if (ctx.dryRun) return { dryRun: true, wouldSend: plan };
+  await confirm(flags, `Cambiar tu franja de entrega a ${fmtWindow(opt)} (era ${fmtWindow(curOption)}).`);
+  const subRes = await gql(Q.EDIT_SUBSCRIPTION_DELIVERY,
+    { subscriptionDeliveryInput: { deliveryConfiguration } }, { profile: ctx.profile, debug: ctx.debug });
+  const sugRes = suggestion ? await gql(Q.EDIT_SUGGESTION_DELIVERY,
+    { suggestionId: suggestion.id, suggestionDeliveryInput: { deliveryConfiguration } },
+    { profile: ctx.profile, debug: ctx.debug }) : null;
+  return {
+    ok: true,
+    option: opt,
+    subscriptionUpdated: subRes?.editDeliveryAccountInfo?.id === sub.id,
+    suggestionUpdated: sugRes?.editSuggestionDelivery?.id === suggestion.id,
+  };
+}
+
+// ---------- perfiles ----------
+
+export async function profilesList(args, flags, ctx) {
+  const d = await gql(Q.PROFILES, {}, { profile: ctx.profile, debug: ctx.debug });
+  const s = d.subscriptionAccountByCustomer;
+  return { subscriptionId: s.id, isActive: s.isActive, pausedUntil: s.pausedUntil, profiles: s.profiles };
+}
+
+async function resolveProfileId(args) {
+  const key = requireId(args[0], '<perfil-id|nombre>');
+  const d = await gql(Q.PROFILES, {}, {});
+  const profiles = d.subscriptionAccountByCustomer?.profiles || [];
+  const p = profiles.find((x) => x.id === key || x._id === key
+    || x.name?.toLowerCase() === key.toLowerCase());
+  if (!p) throw new CliError(EXIT.NOT_FOUND,
+    `No existe el perfil '${key}'. Perfiles: ${profiles.map((x) => `${x.name} (${x.id})`).join(', ')}`,
+    { reason: 'not_found' });
+  return p;
+}
+
+export async function profilesPause(args, flags, ctx) {
+  const p = await resolveProfileId(args);
+  if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'pauseProfile', profileId: p.id } };
+  await confirm(flags, `Pausar el perfil '${p.name}' (deja de recibir tuppers de ese perfil).`);
+  const d = await gql(Q.PAUSE_PROFILE, { profileId: p.id }, { profile: ctx.profile, debug: ctx.debug });
+  return { ok: true, profile: d.pauseProfile };
+}
+
+export async function profilesResume(args, flags, ctx) {
+  const p = await resolveProfileId(args);
+  if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'resumeProfile', profileId: p.id } };
+  await confirm(flags, `Reactivar el perfil '${p.name}'.`);
+  const d = await gql(Q.RESUME_PROFILE, { profileId: p.id }, { profile: ctx.profile, debug: ctx.debug });
+  return { ok: true, profile: d.resumeProfile };
+}
+
+// Borra una dirección guardada. Protección: si está en uso por la suscripción o la
+// semana próxima, exige asignar antes otra (addresses save).
+export async function addrRemove(args, flags, ctx) {
+  const id = parseInt(requireId(args[0], '<address-id>'), 10);
+  if (!Number.isInteger(id)) throw usageError('El id de dirección debe ser numérico (salen de `wetaca addresses list`).');
+  const d0 = await gql(Q.ADDRESSES, {}, { profile: ctx.profile, debug: ctx.debug });
+  const a = (d0.addresses || []).find((x) => x.id === id);
+  if (!a) throw new CliError(EXIT.NOT_FOUND, `No existe la dirección ${id}.`, { reason: 'not_found' });
+  if (a.isSubscriptionAddress || a.isSuggestionAddress) {
+    throw usageError(`La dirección ${id} (${a.street} ${a.number}) está en uso; primero asigna otra con \`wetaca addresses save\`.`);
+  }
+  if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'removeAddress', addressId: id } };
+  await confirm(flags, `Borrar la dirección ${id} (${a.street} ${a.number}, ${a.zipcode} ${a.city}).`);
+  const d = await gql(Q.REMOVE_ADDRESS, { addressId: id }, { profile: ctx.profile, debug: ctx.debug });
+  return { ok: true, removed: d.removeAddress?.id === id, addressId: id };
+}
+
 export async function vouchersList(args, flags, ctx) {
   const d = await gql(Q.VOUCHERS, {}, { profile: ctx.profile, debug: ctx.debug });
   return d.vouchers.map((v) => ({

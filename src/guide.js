@@ -46,9 +46,16 @@ Todo comando devuelve JSON en stdout por defecto; los errores van a stderr.
   wetaca suggestion edit --profile-suggestion ID --set "productId:cant,..." [--dry-run]
   wetaca deliveries next             sugerencias y pedidos pendientes (ids para orders/cancel)
   wetaca orders list [--limit N] | show <id> | cancel <id> [--dry-run]
+  wetaca menu list                    platos de la semana (ids para suggestion edit)
+  wetaca dish show <slug>             detalle/ingredientes de un plato
+  wetaca deliveries options           franjas de entrega disponibles para tu CP
+  wetaca deliveries set-option <id> --dry-run   cambia la franja (revisa y repite con --yes)
+  wetaca profiles list                tus perfiles y su menú
+  wetaca profiles pause <id|nombre>   pausa un perfil (dry-run antes)
   wetaca addresses list
   wetaca addresses save --street C --number N [--floor F] --zipcode CP --city CIUDAD --dry-run
      (revisa el plan; repite con --yes; opcional --notes --firstname --lastname --phone)
+  wetaca addresses remove <id>        borra una dirección no en uso
   wetaca vouchers list
   wetaca wallet
   wetaca config path | list | get <k> | set <k> <v>

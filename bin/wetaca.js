@@ -17,12 +17,16 @@ COMANDOS
   me            show                       resumen de tu cuenta
   subscription  show | pause [--weeks N] | resume
   suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:cant,..."
-  deliveries    next                       entregas y pedidos pendientes
+  deliveries    next | options | set-option <id>   entregas y pedidos pendientes / franjas disponibles / cambiar franja
+  menu          list [--zipcode CP]                menú de la semana (ids de platos para suggestion edit)
+  dish          show <slug>                        detalle de un plato
+  profiles      list | pause <id|nombre> | resume <id|nombre>
   orders        list [--limit N] | show <id> | cancel <id> [--dry-run]
   addresses     list | save --street C --number N [--floor F] --zipcode CP --city CIUDAD
                 save: cambia tu dirección de entrega (suscripción + semana próxima);
                 opcional --notes --firstname --lastname --phone (por defecto heredan de la actual)
                 --dry-run muestra el plan exacto antes de ejecutar
+                remove <id>: borra una dirección no en uso
   vouchers      list
   wallet        show
   config        path | list | get <k> | set <k> <v>
@@ -155,6 +159,22 @@ async function main() {
       break;
     case 'deliveries':
       if (verb === 'next' || verb === undefined) result = await C.deliveriesNext(args, flags, ctx);
+      else if (verb === 'options') result = await C.delivOptions(args, flags, ctx);
+      else if (verb === 'set-option') result = await C.delivSetOption(args, flags, ctx);
+      else throw usageUnknown(noun, verb);
+      break;
+    case 'menu':
+      if (verb === 'list' || verb === undefined) result = await C.menuList(args, flags, ctx);
+      else throw usageUnknown(noun, verb);
+      break;
+    case 'dish':
+      if (verb === 'show' || verb === undefined) result = await C.dishShow(args, flags, ctx);
+      else throw usageUnknown(noun, verb);
+      break;
+    case 'profiles':
+      if (verb === 'list' || verb === undefined) result = await C.profilesList(args, flags, ctx);
+      else if (verb === 'pause') result = await C.profilesPause(args, flags, ctx);
+      else if (verb === 'resume') result = await C.profilesResume(args, flags, ctx);
       else throw usageUnknown(noun, verb);
       break;
     case 'orders':
@@ -166,6 +186,7 @@ async function main() {
     case 'addresses':
       if (verb === 'list') result = await C.addrList(args, flags, ctx);
       else if (verb === 'save') result = await C.addrSave(args, flags, ctx);
+      else if (verb === 'remove') result = await C.addrRemove(args, flags, ctx);
       else throw usageUnknown(noun, verb);
       break;
     case 'vouchers':
