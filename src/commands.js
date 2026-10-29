@@ -60,14 +60,17 @@ export function googleAuthUrl({ state = '/' } = {}) {
 
 function openBrowser(url) {
   const { spawn } = child_process;
-  try {
-    // OJO: nunca vía `cmd /c start` — cmd.exe corta la URL en cada '&' y Google
-    // recibe solo el primer parámetro ("Required parameter is missing: response_type").
-    // explorer.exe abre el navegador por defecto pasando la URL como argv intacto.
-    if (process.platform === 'win32') spawn('explorer', [url], { detached: true, stdio: 'ignore' }).unref();
-    else spawn(process.platform === 'darwin' ? 'open' : 'xdg-open', [url], { detached: true, stdio: 'ignore' }).unref();
-    return true;
-  } catch { return false; }
+  const run = (cmd, args) => {
+    try { spawn(cmd, args, { detached: true, stdio: 'ignore' }).unref(); return true; } catch { return false; }
+  };
+  // OJO: nunca `cmd /c start` — cmd.exe corta la URL en cada '&'. Ni explorer.exe
+  // (a veces abre el Explorador de archivos en lugar del navegador).
+  // rundll32 FileProtocolHandler respeta el navegador por defecto y pasa la URL intacta.
+  if (process.platform === 'win32') {
+    if (run('rundll32', ['url.dll,FileProtocolHandler', url])) return true;
+    return run('explorer', [url]);
+  }
+  return run(process.platform === 'darwin' ? 'open' : 'xdg-open', [url]);
 }
 
 export async function authLoginGoogle(args, flags, ctx) {
