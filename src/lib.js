@@ -173,12 +173,19 @@ async function rawRequest(query, variables, tok, debug) {
       throw e;
     }
     throw new CliError(EXIT.API, `The API responded with HTTP ${res.status}`,
-      { reason: 'http_' + res.status, retryable: res.status >= 500 || res.status === 429 });
+      { reason: 'http_' + res.status, retryable: res.status >= 500 || res.status === 429, httpStatus: res.status });
   }
   let body;
   try { body = await res.json(); } catch {
     throw new CliError(EXIT.DRIFT, 'The API returned a non-JSON response (possible contract change).',
       { reason: 'contract_drift', retryable: false });
+  }
+  // GraphQL validation errors can hide behind HTTP 500: surface them as an API error
+  // with the real message instead of an opaque retryable 500.
+  if (!res.ok && body?.errors?.length) {
+    const msg = body.errors.map((e) => e.message).join('; ');
+    throw new CliError(EXIT.API, `The API rejected the request (HTTP ${res.status}): ${msg}`,
+      { reason: 'graphql_error', retryable: false, details: body.errors });
   }
   return body;
 }

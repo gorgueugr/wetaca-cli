@@ -401,7 +401,9 @@ export async function sugEdit(args, flags, ctx) {
     if (!id || !qty) throw usageError(`Invalid pair in --set: '${pair}' (id:qty format).`);
     const n = parseInt(qty, 10);
     if (!Number.isInteger(n) || n < 0) throw usageError(`Invalid quantity in '${pair}'.`);
-    return { id, quantity: n };
+    const pid = parseInt(id, 10); // the API declares productsInput[].id as Int (ModelId)
+    if (!Number.isInteger(pid) || pid <= 0) throw usageError(`Invalid product id in '${pair}' (must be numeric, from \`wetaca suggestion show\`).`);
+    return { id: pid, quantity: n };
   });
   const payload = { profileSuggestionId: psid, productsInput, resumeAccountSuggestion: flags.resume === undefined ? undefined : flags.resume === 'true' || flags.resume === true };
   if (ctx.dryRun) return { dryRun: true, wouldSend: { query: 'editProfileSuggestionMenu', variables: payload } };
