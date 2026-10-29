@@ -61,7 +61,10 @@ export function googleAuthUrl({ state = '/' } = {}) {
 function openBrowser(url) {
   const { spawn } = child_process;
   try {
-    if (process.platform === 'win32') spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+    // OJO: nunca vía `cmd /c start` — cmd.exe corta la URL en cada '&' y Google
+    // recibe solo el primer parámetro ("Required parameter is missing: response_type").
+    // explorer.exe abre el navegador por defecto pasando la URL como argv intacto.
+    if (process.platform === 'win32') spawn('explorer', [url], { detached: true, stdio: 'ignore' }).unref();
     else spawn(process.platform === 'darwin' ? 'open' : 'xdg-open', [url], { detached: true, stdio: 'ignore' }).unref();
     return true;
   } catch { return false; }
