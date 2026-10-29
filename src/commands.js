@@ -133,6 +133,22 @@ export async function authLogin(args, flags, ctx) {
   const password = flags.password || process.env.WETACA_PASSWORD;
   let token = flags.token;
 
+  if (flags.clipboard) {
+    // leer token del portapapeles (p. ej. extraído de la consola DevTools de wetaca.com)
+    const { execSync } = child_process;
+    try {
+      const out = process.platform === 'win32'
+        ? execSync('powershell -NoProfile -Command Get-Clipboard', { encoding: 'utf8' })
+        : process.platform === 'darwin' ? execSync('pbpaste', { encoding: 'utf8' })
+        : execSync('xclip -selection clipboard -o', { encoding: 'utf8' });
+      const m = String(out).match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
+      token = m ? m[0] : String(out).trim();
+    } catch (e) {
+      throw usageError('No se pudo leer el portapapeles: ' + e.message);
+    }
+    if (!token) throw usageError('El portapapeles está vacío.');
+  }
+
   if (token) {
     // token supplied directly (advanced). Validate it.
     const d = await gql(Q.TOKEN_IS_VALID, { token }, { token, debug: ctx.debug });

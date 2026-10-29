@@ -58,7 +58,7 @@ _wetaca "$@"`,
 };
 
 // ---------- flag parsing ----------
-const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version', 'google', 'no-open']);
+const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version', 'google', 'no-open', 'clipboard']);
 const VALUE_FLAGS = new Set(['format', 'error-format', 'profile', 'email', 'password', 'token',
   'weeks', 'feedback', 'set', 'limit', 'offset', 'suggestion', 'profile-suggestion', 'resume', 'code', 'state']);
 
