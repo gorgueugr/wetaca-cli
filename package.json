@@ -1,7 +1,7 @@
 {
   "name": "wetaca-cli",
   "version": "0.2.2",
-  "description": "Gestiona tu Wetaca desde el terminal: suscripción, menú semanal, entregas y pedidos. Pensado para personas y para agentes IA.",
+  "description": "Manage your Wetaca from the terminal: subscription, weekly menu, deliveries and orders. Built for people and AI agents.",
   "type": "module",
   "bin": {
     "wetaca": "bin/wetaca.js"
