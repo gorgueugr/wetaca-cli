@@ -61,11 +61,26 @@ export async function authLogin(args, flags, ctx) {
     if (!token) throw usageError('El portapapeles está vacío.');
   }
 
+  let customer = null;
   if (token) {
-    // token supplied directly (advanced). Validate it.
-    const d = await gql(Q.TOKEN_IS_VALID, { token }, { token, debug: ctx.debug });
-    if (d.tokenIsValid !== true) {
-      throw new CliError(EXIT.AUTH, 'El token no es válido (tokenIsValid = false).', { reason: 'invalid_token' });
+    // token supplied directly (advanced). Limpiar y validar llamando a la API de verdad
+    // (la prueba que importa es que `customer` responda; tokenIsValid es solo diagnóstico).
+    token = token.trim().replace(/^["']|["']$/g, '').replace(/^Bearer\s+/i, '');
+    if (!token) throw usageError('El token llegó vacío.');
+    try {
+      const d = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
+      customer = d.customer;
+    } catch (e) {
+      let isValid = null;
+      try {
+        const v = await gql(Q.TOKEN_IS_VALID, { token }, { token, debug: ctx.debug });
+        isValid = v.tokenIsValid;
+      } catch { /* seguimos con el error original */ }
+      throw new CliError(EXIT.AUTH,
+        `La API rechazó el token${isValid === false ? ' (tokenIsValid=false)' : ''}. ` +
+        'Comprueba que copiaste SOLO lo que va después de "Bearer " en la cabecera authorization ' +
+        '(sin la palabra Bearer, sin comillas). Error original: ' + e.message,
+        { reason: 'invalid_token' });
     }
   } else {
     if (!email || !password) {
@@ -96,23 +111,26 @@ export async function authLogin(args, flags, ctx) {
     }
   }
 
-  saveProfile(ctx.profile, { token, email: email || null });
-  return { ok: true, profile: ctx.profile, token: token.slice(0, 8) + '…' };
+  saveProfile(ctx.profile, { token, email: customer?.email || email || null });
+  return { ok: true, profile: ctx.profile, email: customer?.email || email || null, token: token.slice(0, 8) + '…' };
 }
 
 export async function authStatus(args, flags, ctx) {
   const token = getToken(ctx.profile);
   if (!token) return { authenticated: false, profile: ctx.profile };
-  let valid = null, customer = null, err = null;
+  let authenticated = false, customer = null, err = null, tokenValid = null;
   try {
-    const d = await gql(Q.TOKEN_IS_VALID, { token }, { profile: ctx.profile, debug: ctx.debug });
-    valid = d.tokenIsValid;
-    if (valid) {
-      const c = await gql(Q.CUSTOMER, {}, { profile: ctx.profile, debug: ctx.debug });
-      customer = c.customer;
-    }
-  } catch (e) { err = e.message; }
-  return { authenticated: valid === true, tokenValid: valid, profile: ctx.profile, customer, error: err };
+    const c = await gql(Q.CUSTOMER, {}, { profile: ctx.profile, debug: ctx.debug });
+    customer = c.customer;
+    authenticated = true;
+  } catch (e) {
+    err = e.message;
+    try {
+      const v = await gql(Q.TOKEN_IS_VALID, { token }, { profile: ctx.profile, debug: ctx.debug });
+      tokenValid = v.tokenIsValid;
+    } catch { /* el error de customer manda */ }
+  }
+  return { authenticated, profile: ctx.profile, customer, tokenValid, error: err };
 }
 
 export async function authLogout(args, flags, ctx) {
