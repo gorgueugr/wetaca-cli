@@ -23,10 +23,8 @@ jobs:
           test "$TAG" = "$PKG" || { echo "tag v$TAG != package.json $PKG"; exit 1; }
       - name: Syntax check
         run: node --check bin/wetaca.js && node --check src/lib.js && node --check src/commands.js
-      - name: Publish
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Stage publish
+        run: npm stage publish # maintainer approves with: npm stage approve --otp <code>
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
