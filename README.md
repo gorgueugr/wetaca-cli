@@ -29,8 +29,8 @@ wetaca doctor
 ## Empezar
 
 ```
-wetaca auth login          # email + contraseña por prompt
-wetaca auth login --email t@x.com --password '...'   # no interactivo
+wetaca auth login --refresh-token <COOKIE>   # cookie refresh-token de wetaca.com (dura ~120 días)
+wetaca auth login               # pide el refresh-token por prompt (oculto); también acepta un JWT de sesión
 wetaca me --format pretty
 ```
 
@@ -80,4 +80,4 @@ wetaca skills get wetaca-usage
 
 ## Licencia
 
-MIT. Inspirado en el diseño de [booksy-cli](https://github.com/GodGMN/booksy-cli).
+MIT.

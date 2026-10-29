@@ -1,13 +1,61 @@
 // wetaca-cli command implementations.
 import readline from 'node:readline/promises';
 import child_process from 'node:child_process';
+import fs from 'node:fs';
 import {
   CliError, usageError, EXIT, gql, cents, fmtDate, emit,
   getToken, loadConfig, saveConfig, saveProfile, configPath, configDir,
+  loadCreds, saveCreds, credentialsPath, sessionRefresh,
 } from './lib.js';
 import * as Q from './queries.js';
 
 // ---------- helpers ----------
+
+// Extrae la cookie refresh-token de wetaca.com de un export del navegador.
+// Formatos aceptados: Netscape cookies.txt, JSON de
+// Cookie-Editor/EditThisCookie (array o {url, cookies}), lista de cookies DevTools,
+// cabecera "Cookie: ..." o el valor pelado.
+export function extractRefreshToken(text) {
+  const t = String(text || '').trim();
+  if (!t) return null;
+  // JSON: array de cookies o {url, cookies}
+  if (t.startsWith('[') || t.startsWith('{')) {
+    try {
+      const j = JSON.parse(t);
+      const list = Array.isArray(j) ? j : (Array.isArray(j.cookies) ? j.cookies : null);
+      if (list) {
+        const c = list.find((x) => x && /(^|\.)wetaca\.com$/i.test(String(x.domain || ''))
+          && x.name === 'refresh-token');
+        return c?.value ? String(c.value) : null;
+      }
+    } catch { /* no era JSON, seguimos */ }
+  }
+  // Netscape cookies.txt: domain \t flag \t path \t secure \t expiry \t name \t value
+  // (las cookies httpOnly llevan el prefijo "#HttpOnly_" en la línea)
+  const lines = t.split(/\r?\n/);
+  for (const raw of lines) {
+    if (!raw) continue;
+    const line = raw.startsWith('#HttpOnly_') ? raw.slice('#HttpOnly_'.length) : raw;
+    if (line.startsWith('#')) continue;
+    const parts = line.split('\t');
+    if (parts.length >= 7 && /(^|\.)wetaca\.com$/i.test(parts[0]) && parts[5] === 'refresh-token') {
+      return parts[6] || null;
+    }
+  }
+  // Cabecera "Cookie: name=value; name=value" o pares sueltos
+  const m = t.match(/(?:^|[\s;])refresh-token=([^;\s"']+)/);
+  if (m) return m[1];
+  // Valor pelado (una única línea sin tabulaciones ni ';'); un "=" puede ser padding base64
+  if (lines.length === 1 && !t.includes('\t') && !t.includes(';')) {
+    const eq = t.indexOf('=');
+    if (eq === -1) return t;
+    const name = t.slice(0, eq);
+    // si lo que hay antes del "=" es el nombre de una cookie conocida, no es un valor pelado
+    const KNOWN = ['refresh-token', 'auth-token', 'customer-token', 'token-voucher-pending'];
+    return KNOWN.includes(name) ? null : t;
+  }
+  return null;
+}
 
 async function confirm(flags, summary) {
   if (flags.yes) return;
@@ -40,10 +88,50 @@ async function nextSuggestionId(profile, debug) {
 
 // ---------- auth ----------
 
+// Pregunta por terminal; hidden=true lee en modo raw (sin eco, como sudo)
+function ask(question, { hidden = false } = {}) {
+  return new Promise((resolve) => {
+    if (!hidden) {
+      // API de promesas (readline/promises): question() devuelve Promise, no acepta callback
+      const rl = readline.createInterface({ input: process.stdin, output: process.stderr, terminal: true });
+      rl.question(question).then((a) => { rl.close(); resolve(a.trim()); });
+      return;
+    }
+    const stdin = process.stdin;
+    process.stderr.write(question);
+    const wasRaw = stdin.isRaw;
+    stdin.setRawMode(true);
+    stdin.resume(); // mantiene vivo el loop tras cerrar el readline del email
+    let buf = '';
+    const onData = (chunk) => {
+      for (const ch of String(chunk)) {
+        if (ch === '\r' || ch === '\n') {
+          stdin.setRawMode(wasRaw);
+          stdin.pause();
+          stdin.removeListener('data', onData);
+          process.stderr.write('\n');
+          resolve(buf.trim());
+          return;
+        } else if (ch === '\u0003') { // Ctrl+C
+          stdin.setRawMode(wasRaw);
+          stdin.pause();
+          stdin.removeListener('data', onData);
+          process.stderr.write('\n');
+          process.exit(130);
+        } else if (ch === '\u007f' || ch === '\b') {
+          buf = buf.slice(0, -1);
+        } else if (ch >= ' ') {
+          buf += ch;
+        }
+      }
+    };
+    stdin.on('data', onData);
+  });
+}
+
 export async function authLogin(args, flags, ctx) {
-  const email = flags.email || process.env.WETACA_LOGIN;
-  const password = flags.password || process.env.WETACA_PASSWORD;
   let token = flags.token;
+  let viaRefresh = false;
 
   if (flags.clipboard) {
     // leer token del portapapeles (p. ej. extraído de la consola DevTools de wetaca.com)
@@ -62,7 +150,48 @@ export async function authLogin(args, flags, ctx) {
   }
 
   let customer = null;
-  if (token) {
+  // --cookies FILE / --cookies-stdin: importar desde un export del navegador.
+  // Netscape cookies.txt, JSON Cookie-Editor/EditThisCookie, header
+  // Cookie: o valor pelado. Solo se leen cookies de wetaca.com.
+  let cookieFileInput = null;
+  if (flags.cookies || flags['cookies-stdin']) {
+    try {
+      if (flags['cookies-stdin']) {
+        cookieFileInput = fs.readFileSync(0, 'utf8');
+      } else {
+        cookieFileInput = fs.readFileSync(String(flags.cookies).trim(), 'utf8');
+      }
+    } catch (e) {
+      throw usageError('No se pudo leer el fichero de cookies: ' + e.message);
+    }
+  }
+  if (cookieFileInput != null || flags['refresh-token'] || process.env.WETACA_REFRESH_TOKEN) {
+    // Importar el refresh-token de la web (cookie de 120 días)
+    // y dejar que /session/refresh fabrique los tokens de sesión. Nunca se pide contraseña.
+    let rt;
+    if (cookieFileInput != null) {
+      rt = extractRefreshToken(cookieFileInput);
+    } else {
+      rt = String(flags['refresh-token'] || process.env.WETACA_REFRESH_TOKEN).trim();
+    }
+    if (!rt) {
+      throw new CliError(EXIT.AUTH,
+        'En el export de cookies no hay ninguna cookie "refresh-token" de wetaca.com. ' +
+        'Asegúrate de exportar las cookies estando logueado en wetaca.com (la cookie se crea al iniciar sesión).',
+        { reason: 'refresh_token_missing', suggested_commands: ['wetaca auth login --refresh-token VALOR'] });
+    }
+    saveProfile(ctx.profile, { refreshToken: rt });
+    try {
+      token = await sessionRefresh(rt, ctx.profile, ctx.debug);
+      viaRefresh = true;
+    } catch (e) {
+      throw new CliError(e.exitCode || EXIT.AUTH,
+        'No se pudo renovar la sesión con ese refresh-token. ' + e.message,
+        { reason: 'invalid_refresh_token', suggested_commands: ['wetaca auth login --token T'] });
+    }
+    const c = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
+    customer = c.customer;
+  } else if (token) {
     // token supplied directly (advanced). Limpiar y validar llamando a la API de verdad
     // (la prueba que importa es que `customer` responda; tokenIsValid es solo diagnóstico).
     token = token.trim().replace(/^["']|["']$/g, '').replace(/^Bearer\s+/i, '');
@@ -83,39 +212,46 @@ export async function authLogin(args, flags, ctx) {
         { reason: 'invalid_token' });
     }
   } else {
-    if (!email || !password) {
-      if (ctx.noInput || !process.stdin.isTTY) {
-        throw usageError('Sin terminal hace falta --email y --password (o --token, o WETACA_LOGIN/WETACA_PASSWORD).');
+    // Sin --refresh-token ni --token: pedirlo por terminal (oculto). Acepta la cookie
+    // refresh-token (preferida, dura 120 días) o un JWT de sesión directo.
+    if (ctx.noInput || !process.stdin.isTTY) {
+      throw usageError('Sin terminal hace falta --refresh-token VALOR (cookie de wetaca.com, F12 → Application → Cookies), o --token VALOR / --token --clipboard.');
+    }
+    const pasted = await ask('Pega el refresh-token (o el token de sesión) y pulsa Enter: ', { hidden: true });
+    const v = (pasted || '').trim().replace(/^["']|["']$/g, '');
+    if (!v) throw usageError('No se pegó ningún token.');
+    if (v.startsWith('eyJ')) {
+      token = v; // JWT de sesión directo
+    } else {
+      saveProfile(ctx.profile, { refreshToken: v });
+      try {
+        token = await sessionRefresh(v, ctx.profile, ctx.debug);
+        viaRefresh = true;
+      } catch (e) {
+        throw new CliError(e.exitCode || EXIT.AUTH,
+          'No se pudo renovar la sesión con ese refresh-token. ' + e.message,
+          { reason: 'invalid_refresh_token', suggested_commands: ['wetaca auth login --token T'] });
       }
-      const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
-      var login = (await rl.question('Email de Wetaca: ')).trim();
-      var pass = (await rl.question('Contraseña: ')).trim();
-      rl.close();
-    } else { var login = email, pass = password; }
-
-    const d = await gql(Q.SESSION_BY_PASSWORD, { login, password: pass, segmentSlug: null }, { anon: true, debug: ctx.debug });
-    const s = d.sessionTokenData;
-    if (!s?.jwtToken) {
-      throw new CliError(EXIT.AUTH, 'La API no devolvió token para esas credenciales.', { reason: 'login_failed' });
     }
-    if (s.requirePhoneNumber) {
-      throw new CliError(EXIT.AUTH,
-        'La cuenta exige verificación SMS. Haz login una vez en wetaca.com y luego usa `wetaca auth login --token` con el token de sesión.',
-        { reason: 'sms_required' });
+    try {
+      const c = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
+      customer = c.customer;
+    } catch (e) {
+      throw new CliError(EXIT.AUTH, 'La API rechazó el token. Error original: ' + e.message,
+        { reason: 'invalid_token' });
     }
-    token = s.jwtToken;
-    // sanity check contra la API de verdad (tokenIsValid no es fiable: dio false con tokens válidos)
-    const c = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
-    customer = c.customer;
   }
 
-  // Guardamos también login/password (si se usaron) para el auto-refresh del token en gql().
+  // Se guardan el token de sesión y (si se importó) el refresh-token. NUNCA la contraseña.
   saveProfile(ctx.profile, {
     token,
-    email: customer?.email || email || login || null,
-    ...(login && pass ? { login, password: pass } : {}),
+    email: customer?.email || null,
   });
-  return { ok: true, profile: ctx.profile, email: customer?.email || email || login || null, token: token.slice(0, 8) + '…' };
+  return {
+    ok: true, profile: ctx.profile, email: customer?.email || null,
+    via: viaRefresh ? 'refresh-token (auto-renovable ~120 días)' : 'token de sesión (caduca; renovalo con --refresh-token)',
+    token: token.slice(0, 8) + '…',
+  };
 }
 
 export async function authStatus(args, flags, ctx) {
@@ -141,6 +277,8 @@ export async function authLogout(args, flags, ctx) {
   if (token) { try { await gql(Q.LOGOUT, {}, { profile: ctx.profile, debug: ctx.debug }); } catch { /* best effort */ } }
   const cfg = loadConfig();
   if (cfg.profiles?.[ctx.profile]) { cfg.profiles[ctx.profile].token = null; saveConfig(cfg); }
+  const creds = loadCreds();
+  if (creds.profiles?.[ctx.profile]) { creds.profiles[ctx.profile].token = null; saveCreds(creds); }
   return { ok: true, profile: ctx.profile };
 }
 
@@ -502,7 +640,7 @@ export async function walletShow(args, flags, ctx) {
 // ---------- config ----------
 
 export async function configCmd(verb, args, flags, ctx) {
-  if (verb === 'path') return { path: configPath() };
+  if (verb === 'path') return { config: configPath(), credentials: credentialsPath() };
   const cfg = loadConfig();
   if (verb === 'list') return { defaultProfile: cfg.defaultProfile, config: { ...cfg.profiles, _meta: { redacted: true } }, note: 'los tokens no se muestran' };
   if (verb === 'get') {

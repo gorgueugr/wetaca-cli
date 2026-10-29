@@ -26,7 +26,7 @@ Binario `wetaca`. Paquete npm `wetaca-cli`, JavaScript (Node ≥ 18), cero depen
 ## 3. Árbol de comandos
 
 ```
-auth        login [--email E --password P | --token T [--clipboard]] | status | logout
+auth        login [--refresh-token COOKIE | --cookies FILE | --cookies-stdin | --token T [--clipboard]] | status | logout
 me          show
 subscription  show | pause [--weeks N] [--feedback S] | resume
 suggestion  show | pause [--feedback S] | resume | edit --profile-suggestion ID --set "id:cant,..."
@@ -64,11 +64,12 @@ completion  bash | zsh | fish
 
 ## 6. Sesión
 
-- Login con contraseña: `sessionTokenByPassword(username, password, segmentSlug)` → `{ customerId, jwtToken, requirePhoneNumber }`. Si `requirePhoneNumber`, se exige verificación SMS: hacer login en la web y usar `auth login --token <jwt>`.
-- Importar token de sesión (vía recomendada para cuentas con Google): entra en wetaca.com con tu navegador, F12 → Network → filtra `api.wetaca.com` → cualquier petición → cabecera `authorization: Bearer <TOKEN>` → `wetaca auth login --token <TOKEN>` (o cópialo y usa `--clipboard`). El token no tiene por qué ser un JWT; se acepta cualquier formato y se valida con `tokenIsValid` antes de guardarse.
-- Auto-refresh: si haces `auth login` con email+password, el CLI guarda las credenciales en el config (texto plano, solo local) y **renueva el token automáticamente** cuando la API responde UNAUTHENTICATED/401. Los agentes IA nunca necesitan un token manual. Si la cuenta no tiene contraseña, fija una en "Mi cuenta" de wetaca.com.
-- Validación: `tokenIsValid(token)` (público).
-- Almacenamiento: `config.json` → `profiles.<nombre>.token`. `WETACA_TOKEN` tiene prioridad (CI). Perfiles: `--profile` / `WETACA_PROFILE` / `defaultProfile`.
+- **Vía recomendada — cookie `refresh-token`**: entra en wetaca.com logueado, F12 → Application → Cookies → `https://wetaca.com` → copia el valor de **`refresh-token`** (dura ~120 días) y ejecuta `wetaca auth login --refresh-token <VALOR>` (o pégalo cuando el CLI lo pida, oculto). El CLI lo guarda en `credentials.json` (0600) y **renueva el token de sesión solo** vía `POST /session/refresh` (header `x-wetaca-session: 1`, cookie `refresh-token`), igual que hace la web. Si la API rota el refresh-token en la respuesta, el CLI guarda el nuevo.
+- **Import desde un export de cookies**: `wetaca auth login --cookies cookies.txt` o `--cookies-stdin`. Formatos: Netscape cookies.txt (incluye líneas `#HttpOnly_`), JSON de Cookie-Editor/EditThisCookie (array o `{url, cookies}`), cabecera `Cookie:`, o el valor pelado. Solo se leen cookies de wetaca.com; si no hay `refresh-token` en el export, error claro.
+- Importar token de sesión directo (alternativa, caduca ~1h): F12 → Network → filtra `api.wetaca.com` → cualquier petición → cabecera `authorization: Bearer <TOKEN>` → `wetaca auth login --token <TOKEN>` (o `--clipboard`). Se acepta cualquier formato y se valida lanzando la query `customer`.
+- **La contraseña nunca se pide ni se guarda** (decisión del usuario). Los endpoints `sessionTokenByPassword` existen en la API pero el CLI no los usa.
+- Validación: la prueba que importa es que la query `customer` responda con el token (`tokenIsValid` solo diagnóstico: dio false con tokens válidos).
+- Almacenamiento: secretos (token, refreshToken) en `credentials.json` con permisos restrictivos (0600 / ACL solo usuario); el resto en `config.json`. Env: `WETACA_TOKEN` (CI, prioridad máxima), `WETACA_REFRESH_TOKEN` (CI, auto-refresh sin disco). Perfiles: `--profile` / `WETACA_PROFILE` / `defaultProfile`.
 - Cabecera: `authorization: Bearer <jwt>` en cada petición.
 
 ## 7. API

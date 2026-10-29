@@ -112,6 +112,6 @@ Ideas de automatización (cron):
 
 ## 4. Sesión
 
-- Estado: `wetaca auth status` · Renovar: `wetaca auth login --token <TOKEN> --clipboard`
-- El token vive en `~/.config/wetaca-cli/config.json`; `WETACA_TOKEN` lo sobreescribe (CI).
+- Estado: `wetaca auth status` · Renovar: `wetaca auth login --cookies cookies.txt` (export con Cookie-Editor) o `--refresh-token <COOKIE>` (F12 → Application → Cookies → `refresh-token`; dura ~120 días y el CLI renueva el token solo). Alternativa: `wetaca auth login --token <TOKEN> --clipboard` (caduca ~1h).
+- El token vive en `~/.config/wetaca-cli/credentials.json` (0600) y el resto de ajustes en `config.json`; `WETACA_TOKEN` lo sobreescribe (CI).
 - Si la API lo rechaza (exit 3), repite la extracción con DevTools (docs/cli-spec.md §6).

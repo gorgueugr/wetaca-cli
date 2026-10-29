@@ -7,7 +7,7 @@ Todo comando devuelve JSON en stdout por defecto; los errores van a stderr.
 
 1. Ejecuta `wetaca doctor` para verificar node, conectividad y sesión.
 2. `wetaca auth status` dice si hay sesión válida. Si no la hay:
-   - `wetaca auth login` (email + contraseña, por prompt)
+   - `wetaca auth login --cookies cookies.txt` (export con la extensión Cookie-Editor sobre wetaca.com logueado) o `--refresh-token COOKIE` (cookie de wetaca.com, dura ~120 días; el CLI renueva el token solo). Sin contraseña.
    - `wetaca auth login --token T` o `--token --clipboard`: token copiado de la cabecera
      `authorization: Bearer …` de cualquier petición a api.wetaca.com en las DevTools del
      usuario (F12 → Network). Es la vía si su cuenta entra con Google.
@@ -37,7 +37,7 @@ Todo comando devuelve JSON en stdout por defecto; los errores van a stderr.
 
 ## Comandos
 
-  wetaca auth login [--email E --password P | --token T] | status | logout
+  wetaca auth login [--refresh-token COOKIE | --token T] | status | logout
   wetaca me                          resumen: cliente + suscripción + cartera
   wetaca subscription show | pause [--weeks N] [--feedback S] | resume
   wetaca suggestion show             menú de la semana próxima por perfil, precios, ventana de entrega

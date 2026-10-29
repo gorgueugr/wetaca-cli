@@ -12,10 +12,14 @@ USO
   wetaca [flags globales] <noun> <verb> [args] [flags]
 
 COMANDOS
-  auth          login [--email E --password P | --token T [--clipboard]] | status | logout
-                login --token: pega el token de sesión de wetaca.com (ver docs/cli-spec.md §6)
-                login con email+password guarda las credenciales y RENUEVA el token solo
-                cuando caduca (auto-refresh); así los agentes nunca piden token manual
+  auth          login [--refresh-token COOKIE | --cookies FILE | --cookies-stdin | --token T [--clipboard]] | status | logout
+  auth login importa la cookie refresh-token de wetaca.com (F12 → Application → Cookies;
+                dura ~120 días) y RENUEVA el token de sesión automáticamente cuando caduca.
+                Nunca se pide ni se guarda la contraseña.
+                --cookies FILE acepta exports del navegador: Netscape cookies.txt, JSON de
+                Cookie-Editor/EditThisCookie, cabecera Cookie: o el valor pelado; solo se
+                leen cookies de wetaca.com.
+                login --token: pega el token de sesión directo de wetaca.com (caduca ~1h)
   me            show                       resumen de tu cuenta
   subscription  show | pause [--weeks N] | resume
   suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:cant,..."
@@ -66,8 +70,8 @@ _wetaca "$@"`,
 };
 
 // ---------- flag parsing ----------
-const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version', 'clipboard']);
-const VALUE_FLAGS = new Set(['format', 'error-format', 'profile', 'email', 'password', 'token',
+const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version', 'clipboard', 'cookies-stdin']);
+const VALUE_FLAGS = new Set(['format', 'error-format', 'profile', 'token', 'refresh-token', 'cookies',
   'weeks', 'feedback', 'set', 'limit', 'offset', 'suggestion', 'profile-suggestion', 'resume', 'code', 'state',
   'street', 'number', 'floor', 'zipcode', 'city', 'notes', 'firstname', 'lastname', 'phone']);
 
