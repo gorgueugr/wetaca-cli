@@ -74,7 +74,7 @@ wetaca skills get wetaca-usage
 
 ## Bueno saber
 
-- **No oficial.** Usa la API GraphQL de `api.wetaca.com` (la misma que la web y la app). Wetaca puede cambiarla; si lo hace, el CLI termina con exit 7 (`contract_drift`).
+- **No afiliado a Wetaca.** Proyecto independiente, sin relación con Wetaca. Usa la API GraphQL de `api.wetaca.com` (la misma que la web y la app). Wetaca puede cambiarla; si lo hace, el CLI termina con exit 7 (`contract_drift`).
 - **Tu sesión se queda local.** El refresh-token se guarda solo en tu disco (fichero aparte, permisos restrictivos) y solo viaja hacia Wetaca.
 - **Nada sin confirmación.** Las operaciones con efectos reales (`suggestion pause/edit`, `subscription pause`, `orders cancel`) muestran un resumen y piden confirmación; sin terminal exigen `--yes`.
 - **No toca pagos.** Las tarjetas y pagos pendientes se gestionan en wetaca.com.

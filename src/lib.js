@@ -144,7 +144,7 @@ export function getToken(profileName) {
 
 // ---------- GraphQL client ----------
 const API_URL = process.env.WETACA_API_URL || 'https://api.wetaca.com/graphql';
-const UA = `wetaca-cli/${VERSION} (+https://github.com/GodGMN/wetaca-cli)`;
+const UA = `wetaca-cli/${VERSION} (+https://github.com/gorgueugr/wetaca-cli)`;
 
 async function rawRequest(query, variables, tok, debug) {
   const headers = {
