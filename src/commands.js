@@ -3,7 +3,7 @@ import readline from 'node:readline/promises';
 import child_process from 'node:child_process';
 import fs from 'node:fs';
 import {
-  CliError, usageError, EXIT, gql, cents, fmtDate, emit,
+  CliError, usageError, EXIT, gql, cents, fmtDate, fmtWindow, emit,
   getToken, loadConfig, saveConfig, saveProfile, configPath, configDir,
   loadCreds, saveCreds, credentialsPath, sessionRefresh,
 } from './lib.js';
