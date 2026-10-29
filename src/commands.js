@@ -74,7 +74,9 @@ function openBrowser(url) {
 }
 
 export async function authLoginGoogle(args, flags, ctx) {
-  const url = googleAuthUrl({ state: flags.state || '/' });
+  // state=/menu: la web canjea y BORRA el code en su página de login; en una ruta
+  // normal el code sobrevive en la barra de direcciones para que el usuario lo copie.
+  const url = googleAuthUrl({ state: flags.state || '/menu' });
   if (ctx.dryRun || flags['no-open']) {
     // sin apertura de navegador: imprime la URL y termina
     if (ctx.dryRun) return { dryRun: true, authUrl: url, nextStep: 'abre la URL, inicia sesión con Google y copia el parámetro code de la barra de direcciones' };
