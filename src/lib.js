@@ -179,21 +179,33 @@ function printPretty(data, indent = '') {
       console.log(indent + k + ':');
       printPretty(v, indent + '  ');
     } else {
-      console.log(indent + `${k}: ${v}`);
+      // precios en céntimos → euros en modo pretty
+      const isCents = /price|toPay|balance/i.test(k) && typeof v === 'number' && v > 100;
+      console.log(indent + `${k}: ${isCents ? cents(v) : v}`);
     }
   }
 }
 
 function printTable(rows) {
   const cols = Object.keys(rows[0]);
-  const cell = (v) => v == null ? '' : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+  const cell = (v, k) => {
+    if (v == null) return '';
+    if (Array.isArray(v)) return v.map((x) => cell(x)).join(', ');
+    if (typeof v === 'object') {
+      if (typeof v.name === 'string') return v.name;
+      return Object.entries(v).filter(([, x]) => x != null && typeof x !== 'object')
+        .map(([kk, x]) => `${kk}=${x}`).join(' ');
+    }
+    if (typeof v === 'number' && /price|toPay/i.test(k || '') && v > 100) return cents(v);
+    return String(v);
+  };
   const w = {};
-  for (const c of cols) w[c] = Math.min(Math.max(c.length, ...rows.map((r) => cell(r[c]).length)), 40);
+  for (const c of cols) w[c] = Math.min(Math.max(c.length, ...rows.map((r) => cell(r[c], c).length)), 40);
   const line = (l, m, r) => l + cols.map((c) => '─'.repeat(w[c])).join(m) + r;
   console.log(line('┌', '┬', '┐'));
   console.log('│' + cols.map((c) => c.padEnd(w[c])).join('│') + '│');
   console.log(line('├', '┼', '┤'));
-  for (const r of rows) console.log('│' + cols.map((c) => cell(r[c]).slice(0, w[c]).padEnd(w[c])).join('│') + '│');
+  for (const r of rows) console.log('│' + cols.map((c) => cell(r[c], c).slice(0, w[c]).padEnd(w[c])).join('│') + '│');
   console.log(line('└', '┴', '┘'));
 }
 
