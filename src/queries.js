@@ -142,6 +142,36 @@ export const ADDRESSES = `query addresses {
   }
 }`;
 
+export const SAVE_ADDRESS = `mutation saveAddress($address: AddressInput!) {
+  saveAddress(address: $address) {
+    id firstname lastname street number floor zipcode city phone
+  }
+}`;
+
+// Configuración de entrega actual (suscripción + sugerencia de la semana próxima)
+export const DELIVERY_CONFIG = `query deliveryConfig {
+  subscriptionAccountByCustomer {
+    id
+    delivery {
+      type
+      option { id }
+      address { id firstname lastname street number floor zipcode city phone notes }
+    }
+  }
+  nextSuggestion {
+    id
+    delivery { type option { id } address { id } }
+  }
+}`;
+
+export const EDIT_SUBSCRIPTION_DELIVERY = `mutation editSubscriptionDelivery($subscriptionDeliveryInput: EditSubscriptionGraph!, $checkChargingSuggestion: Boolean) {
+  editDeliveryAccountInfo(subscriptionDeliveryInput: $subscriptionDeliveryInput, checkChargingSuggestion: $checkChargingSuggestion) { id }
+}`;
+
+export const EDIT_SUGGESTION_DELIVERY = `mutation editSuggestionDelivery($suggestionId: ModelId!, $suggestionDeliveryInput: EditSuggestionDeliveryGraph!) {
+  editSuggestionDelivery(suggestionId: $suggestionId, suggestionDeliveryInput: $suggestionDeliveryInput) { id }
+}`;
+
 export const VOUCHERS = `query customerVouchersCli {
   vouchers(limit: 50, skipExpired: false, skipFuture: false) {
     code dateTo remainingUses isReferral

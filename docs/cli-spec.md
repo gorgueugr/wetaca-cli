@@ -32,7 +32,10 @@ subscription  show | pause [--weeks N] [--feedback S] | resume
 suggestion  show | pause [--feedback S] | resume | edit --profile-suggestion ID --set "id:cant,..."
 deliveries  next
 orders      list [--limit N] [--offset N] | show <id> | cancel <id>
-addresses   list
+addresses   list | save --street C --number N [--floor F] --zipcode CP --city CIUDAD
+            save crea la dirección y la asigna a la suscripción y a la semana próxima
+            (flujo de la web: saveAddress → editDeliveryAccountInfo → editSuggestionDelivery);
+            opcional --notes --firstname --lastname --phone; confirmación salvo --yes
 vouchers    list
 wallet      show
 config      path | list | get <k> | set <k> <v>

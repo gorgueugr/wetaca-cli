@@ -46,6 +46,8 @@ Todo comando devuelve JSON en stdout por defecto; los errores van a stderr.
   wetaca deliveries next             sugerencias y pedidos pendientes (ids para orders/cancel)
   wetaca orders list [--limit N] | show <id> | cancel <id> [--dry-run]
   wetaca addresses list
+  wetaca addresses save --street C --number N [--floor F] --zipcode CP --city CIUDAD --dry-run
+     (revisa el plan; repite con --yes; opcional --notes --firstname --lastname --phone)
   wetaca vouchers list
   wetaca wallet
   wetaca config path | list | get <k> | set <k> <v>

@@ -307,6 +307,63 @@ export async function addrList(args, flags, ctx) {
   return d.addresses;
 }
 
+// Cambia la dirección de entrega: crea la dirección nueva (saveAddress) y la asigna
+// a la suscripción (editDeliveryAccountInfo) y a la sugerencia de la semana próxima
+// (editSuggestionDelivery), manteniendo la opción de envío actual. Flujo idéntico al de la web.
+export async function addrSave(args, flags, ctx) {
+  const f = (k) => (flags[k] != null ? String(flags[k]).trim() : undefined);
+  const street = f('street'), number = f('number'), zipcode = f('zipcode'), city = f('city');
+  if (!street || !number || !zipcode || !city) {
+    throw usageError('Faltan campos: --street, --number, --zipcode y --city son obligatorios ' +
+      '(opcionales: --floor, --notes, --firstname, --lastname, --phone; por defecto se heredan de tu dirección actual).');
+  }
+  const cur = await gql(Q.DELIVERY_CONFIG, {}, { profile: ctx.profile, debug: ctx.debug });
+  const sub = cur.subscriptionAccountByCustomer;
+  const curAddr = sub?.delivery?.address || {};
+  const deliveryOptionId = sub?.delivery?.option?.id;
+  const suggestion = cur.nextSuggestion;
+  if (!deliveryOptionId) throw new CliError(EXIT.DRIFT, 'No pude leer la opción de envío actual de tu suscripción.', { reason: 'no_delivery_option' });
+
+  const address = {
+    firstname: f('firstname') ?? curAddr.firstname,
+    lastname: f('lastname') ?? curAddr.lastname,
+    street,
+    number,
+    floor: f('floor') ?? curAddr.floor ?? null,
+    zipcode: parseInt(zipcode, 10),
+    city,
+    phone: f('phone') ?? curAddr.phone,
+    notes: f('notes') ?? curAddr.notes ?? null,
+  };
+  if (address.zipcode == null || Number.isNaN(address.zipcode)) throw usageError('--zipcode debe ser numérico.');
+  // OJO: deliveryConfiguration NO lleva "type" — la API devuelve 500 si se lo mandas
+  // (probado en vivo; el shape válido es {optionConfiguration: {addressId, deliveryOptionId}}).
+  const deliveryConfiguration = { optionConfiguration: { addressId: null, deliveryOptionId } };
+  const plan = {
+    saveAddress: address,
+    subscription: sub ? { mutation: 'editDeliveryAccountInfo', deliveryConfiguration } : null,
+    suggestion: suggestion ? { mutation: 'editSuggestionDelivery', suggestionId: suggestion.id, deliveryConfiguration } : null,
+  };
+  if (ctx.dryRun) return { dryRun: true, wouldSend: plan };
+  await confirm(flags, `Cambiar tu dirección de entrega a ${street} ${number}${address.floor ? ', ' + address.floor : ''} (${address.zipcode} ${city}).`);
+  const saved = await gql(Q.SAVE_ADDRESS, { address }, { profile: ctx.profile, debug: ctx.debug });
+  const addressId = saved.saveAddress.id;
+  const deliveryConfiguration2 = { optionConfiguration: { addressId, deliveryOptionId } };
+  const subRes = sub ? await gql(Q.EDIT_SUBSCRIPTION_DELIVERY,
+    { subscriptionDeliveryInput: { deliveryConfiguration: deliveryConfiguration2 } },
+    { profile: ctx.profile, debug: ctx.debug }) : null;
+  const sugRes = suggestion ? await gql(Q.EDIT_SUGGESTION_DELIVERY,
+    { suggestionId: suggestion.id, suggestionDeliveryInput: { deliveryConfiguration: deliveryConfiguration2 } },
+    { profile: ctx.profile, debug: ctx.debug }) : null;
+  return {
+    ok: true,
+    address: saved.saveAddress,
+    phoneCarriedFromPrevious: !flags.phone && !!curAddr.phone,
+    subscriptionUpdated: subRes?.editDeliveryAccountInfo?.id === sub.id,
+    suggestionUpdated: sugRes?.editSuggestionDelivery?.id === suggestion.id,
+  };
+}
+
 export async function vouchersList(args, flags, ctx) {
   const d = await gql(Q.VOUCHERS, {}, { profile: ctx.profile, debug: ctx.debug });
   return d.vouchers.map((v) => ({

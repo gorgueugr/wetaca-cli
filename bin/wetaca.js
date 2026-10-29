@@ -19,7 +19,10 @@ COMANDOS
   suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:cant,..."
   deliveries    next                       entregas y pedidos pendientes
   orders        list [--limit N] | show <id> | cancel <id> [--dry-run]
-  addresses     list
+  addresses     list | save --street C --number N [--floor F] --zipcode CP --city CIUDAD
+                save: cambia tu dirección de entrega (suscripción + semana próxima);
+                opcional --notes --firstname --lastname --phone (por defecto heredan de la actual)
+                --dry-run muestra el plan exacto antes de ejecutar
   vouchers      list
   wallet        show
   config        path | list | get <k> | set <k> <v>
@@ -59,7 +62,8 @@ _wetaca "$@"`,
 // ---------- flag parsing ----------
 const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version', 'clipboard']);
 const VALUE_FLAGS = new Set(['format', 'error-format', 'profile', 'email', 'password', 'token',
-  'weeks', 'feedback', 'set', 'limit', 'offset', 'suggestion', 'profile-suggestion', 'resume', 'code', 'state']);
+  'weeks', 'feedback', 'set', 'limit', 'offset', 'suggestion', 'profile-suggestion', 'resume', 'code', 'state',
+  'street', 'number', 'floor', 'zipcode', 'city', 'notes', 'firstname', 'lastname', 'phone']);
 
 function parseArgs(argv) {
   const flags = {}, positional = [];
@@ -161,6 +165,7 @@ async function main() {
       break;
     case 'addresses':
       if (verb === 'list') result = await C.addrList(args, flags, ctx);
+      else if (verb === 'save') result = await C.addrSave(args, flags, ctx);
       else throw usageUnknown(noun, verb);
       break;
     case 'vouchers':

@@ -54,6 +54,18 @@ wetaca subscription resume                  # reactiva
 wetaca subscription show                    # estado actual
 ```
 
+### Cambiar la dirección de entrega
+```bash
+# simulación del plan exacto (nada se toca)
+wetaca addresses save --street "Calle Ribera del Violón" --number 3 --floor 4B --zipcode 18006 --city Granada --dry-run
+
+# ejecuta (pide confirmación; --yes para scripts): crea la dirección y la asigna a la
+# suscripción y a la semana próxima, conservando la franja de entrega actual
+wetaca addresses save --street "Calle Ribera del Violón" --number 3 --floor 4B --zipcode 18006 --city Granada --yes
+```
+Nombre, apellido, teléfono y notas se heredan de tu dirección actual salvo que pases
+--firstname/--lastname/--phone/--notes. Verifica después con `wetaca addresses list`.
+
 ### Cancelar un pedido confirmado
 ```bash
 wetaca orders cancel 2576020 --dry-run      # ver qué haría
