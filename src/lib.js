@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { SESSION_BY_PASSWORD } from './queries.js';
 
 // ---------- exit codes (stable contract) ----------
 export const EXIT = {
@@ -81,12 +82,7 @@ export function getToken(profileName) {
 // ---------- GraphQL client ----------
 const API_URL = process.env.WETACA_API_URL || 'https://api.wetaca.com/graphql';
 
-export async function gql(query, variables, { token, profile, debug, anon = false } = {}) {
-  const tok = token ?? getToken(profile);
-  if (!tok && !anon) {
-    throw new CliError(EXIT.AUTH, 'No hay sesión. Ejecuta `wetaca auth login` (o define WETACA_TOKEN).',
-      { reason: 'auth_required', retryable: false, suggested_commands: ['wetaca auth login'] });
-  }
+async function rawRequest(query, variables, tok, debug) {
   const headers = {
     'Content-Type': 'application/json',
     'User-Agent': 'wetaca-cli/0.1.0 (+https://github.com/GodGMN/wetaca-cli)',
@@ -105,11 +101,13 @@ export async function gql(query, variables, { token, profile, debug, anon = fals
       { reason: 'network', retryable: true });
   }
   if (debug) console.error(`wetaca: POST ${API_URL} -> ${res.status} (${Date.now() - started} ms)`);
-  if (res.status === 401 || res.status === 403) {
-    throw new CliError(EXIT.AUTH, 'La API rechazó la sesión (401/403). El token puede haber expirado.',
-      { reason: 'auth_rejected', retryable: false, suggested_commands: ['wetaca auth login'] });
-  }
   if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      const e = new CliError(EXIT.AUTH, 'La API rechazó la sesión (401/403). El token puede haber expirado.',
+        { reason: 'auth_rejected', retryable: false, suggested_commands: ['wetaca auth login'] });
+      e.auth = true;
+      throw e;
+    }
     throw new CliError(EXIT.API, `La API respondió HTTP ${res.status}`,
       { reason: 'http_' + res.status, retryable: res.status >= 500 || res.status === 429 });
   }
@@ -118,18 +116,69 @@ export async function gql(query, variables, { token, profile, debug, anon = fals
     throw new CliError(EXIT.DRIFT, 'La API devolvió una respuesta no JSON (posible cambio de contrato).',
       { reason: 'contract_drift', retryable: false });
   }
-  if (body.errors?.length) {
-    const codes = body.errors.map((e) => e.extensions?.code).filter(Boolean);
-    if (codes.includes('UNAUTHENTICATED')) {
-      throw new CliError(EXIT.AUTH, 'La sesión no es válida para esta operación.',
-        { reason: 'auth_required', retryable: false, suggested_commands: ['wetaca auth login'] });
-    }
-    throw new CliError(EXIT.API, body.errors.map((e) => e.message).join('; '),
-      { reason: 'graphql_error', retryable: false, details: body.errors });
+  return body;
+}
+
+// Credenciales guardadas (login+password) para auto-refresh del token.
+function storedCreds(profile) {
+  if (process.env.WETACA_LOGIN && process.env.WETACA_PASSWORD) {
+    return { login: process.env.WETACA_LOGIN, password: process.env.WETACA_PASSWORD };
   }
-  // OJO: los campos top-level null son NORMALES en esta API (p. ej. nextPaymentPendingOrder
-  // null = "no hay pagos pendientes"); no implican deriva de contrato. Cada comando decide.
-  return body.data;
+  const cfg = loadConfig();
+  const p = cfg.profiles?.[profile || cfg.defaultProfile || 'default'];
+  return p?.login && p?.password ? { login: p.login, password: p.password } : null;
+}
+
+async function refreshToken(creds, profile, debug) {
+  const body = await rawRequest(SESSION_BY_PASSWORD,
+    { login: creds.login, password: creds.password, segmentSlug: null }, null, debug);
+  const s = body?.data?.sessionTokenData;
+  if (!s?.jwtToken) {
+    throw new CliError(EXIT.AUTH, 'El auto-refresh falló: la API no devolvió token (¿contraseña cambiada?). Ejecuta `wetaca auth login`.',
+      { reason: 'login_failed', suggested_commands: ['wetaca auth login'] });
+  }
+  if (s.requirePhoneNumber) {
+    throw new CliError(EXIT.AUTH, 'El auto-refresh exige verificación SMS: haz login en wetaca.com y luego `wetaca auth login --token --clipboard`.',
+      { reason: 'sms_required' });
+  }
+  saveProfile(profile, { token: s.jwtToken });
+  if (debug) console.error('wetaca: token renovado automáticamente (login por contraseña)');
+  return s.jwtToken;
+}
+
+export async function gql(query, variables, { token, profile, debug, anon = false } = {}) {
+  const tok0 = token ?? getToken(profile);
+  if (!tok0 && !anon) {
+    throw new CliError(EXIT.AUTH, 'No hay sesión. Ejecuta `wetaca auth login` (o define WETACA_TOKEN).',
+      { reason: 'auth_required', retryable: false, suggested_commands: ['wetaca auth login'] });
+  }
+  // Auto-refresh: si la petición falla por sesión caducada y hay credenciales guardadas,
+  // re-loguea y reintenta UNA vez (solo con el token almacenado, no con tokens explícitos).
+  const canRefresh = !anon && !token && !!storedCreds(profile);
+  const call = async (tok) => {
+    const body = await rawRequest(query, variables, tok, debug);
+    if (body.errors?.length) {
+      const codes = body.errors.map((e) => e.extensions?.code).filter(Boolean);
+      if (codes.includes('UNAUTHENTICATED')) {
+        const e = new CliError(EXIT.AUTH, 'La sesión no es válida para esta operación.',
+          { reason: 'auth_required', retryable: false, suggested_commands: ['wetaca auth login'] });
+        e.auth = true;
+        throw e;
+      }
+      throw new CliError(EXIT.API, body.errors.map((e) => e.message).join('; '),
+        { reason: 'graphql_error', retryable: false, details: body.errors });
+    }
+    // OJO: los campos top-level null son NORMALES en esta API (p. ej. nextPaymentPendingOrder
+    // null = "no hay pagos pendientes"); no implican deriva de contrato. Cada comando decide.
+    return body.data;
+  };
+  try {
+    return await call(tok0);
+  } catch (e) {
+    if (!canRefresh || !e.auth) throw e;
+    const fresh = await refreshToken(storedCreds(profile), profile, debug);
+    return call(fresh);
+  }
 }
 
 // ---------- money / dates helpers ----------

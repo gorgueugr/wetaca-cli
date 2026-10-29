@@ -104,15 +104,18 @@ export async function authLogin(args, flags, ctx) {
         { reason: 'sms_required' });
     }
     token = s.jwtToken;
-    // sanity check
-    const v = await gql(Q.TOKEN_IS_VALID, { token }, { token, debug: ctx.debug });
-    if (v.tokenIsValid !== true) {
-      throw new CliError(EXIT.AUTH, 'El token devuelto no superó la validación.', { reason: 'invalid_token' });
-    }
+    // sanity check contra la API de verdad (tokenIsValid no es fiable: dio false con tokens válidos)
+    const c = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
+    customer = c.customer;
   }
 
-  saveProfile(ctx.profile, { token, email: customer?.email || email || null });
-  return { ok: true, profile: ctx.profile, email: customer?.email || email || null, token: token.slice(0, 8) + '…' };
+  // Guardamos también login/password (si se usaron) para el auto-refresh del token en gql().
+  saveProfile(ctx.profile, {
+    token,
+    email: customer?.email || email || login || null,
+    ...(login && pass ? { login, password: pass } : {}),
+  });
+  return { ok: true, profile: ctx.profile, email: customer?.email || email || login || null, token: token.slice(0, 8) + '…' };
 }
 
 export async function authStatus(args, flags, ctx) {

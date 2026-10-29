@@ -66,6 +66,7 @@ completion  bash | zsh | fish
 
 - Login con contraseña: `sessionTokenByPassword(username, password, segmentSlug)` → `{ customerId, jwtToken, requirePhoneNumber }`. Si `requirePhoneNumber`, se exige verificación SMS: hacer login en la web y usar `auth login --token <jwt>`.
 - Importar token de sesión (vía recomendada para cuentas con Google): entra en wetaca.com con tu navegador, F12 → Network → filtra `api.wetaca.com` → cualquier petición → cabecera `authorization: Bearer <TOKEN>` → `wetaca auth login --token <TOKEN>` (o cópialo y usa `--clipboard`). El token no tiene por qué ser un JWT; se acepta cualquier formato y se valida con `tokenIsValid` antes de guardarse.
+- Auto-refresh: si haces `auth login` con email+password, el CLI guarda las credenciales en el config (texto plano, solo local) y **renueva el token automáticamente** cuando la API responde UNAUTHENTICATED/401. Los agentes IA nunca necesitan un token manual. Si la cuenta no tiene contraseña, fija una en "Mi cuenta" de wetaca.com.
 - Validación: `tokenIsValid(token)` (público).
 - Almacenamiento: `config.json` → `profiles.<nombre>.token`. `WETACA_TOKEN` tiene prioridad (CI). Perfiles: `--profile` / `WETACA_PROFILE` / `defaultProfile`.
 - Cabecera: `authorization: Bearer <jwt>` en cada petición.

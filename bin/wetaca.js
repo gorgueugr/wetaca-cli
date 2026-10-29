@@ -14,6 +14,8 @@ USO
 COMANDOS
   auth          login [--email E --password P | --token T [--clipboard]] | status | logout
                 login --token: pega el token de sesión de wetaca.com (ver docs/cli-spec.md §6)
+                login con email+password guarda las credenciales y RENUEVA el token solo
+                cuando caduca (auto-refresh); así los agentes nunca piden token manual
   me            show                       resumen de tu cuenta
   subscription  show | pause [--weeks N] | resume
   suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:cant,..."
