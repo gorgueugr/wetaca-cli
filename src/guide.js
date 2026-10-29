@@ -7,10 +7,12 @@ Todo comando devuelve JSON en stdout por defecto; los errores van a stderr.
 ## Antes de empezar
 
 1. Ejecuta \`wetaca doctor\` para verificar node, conectividad y sesión.
-2. \`wetaca auth status\` dice si hay sesión válida. Si no la hay, tres formas de login:
-   - \`wetaca auth login\` (email + contraseña, por prompt; pídeselo al usuario o usa --email/--password si te los da)
-   - \`wetaca auth login --google\` (abre el navegador, el usuario inicia sesión con Google y pega el \`code\` de la barra de direcciones)
-   - \`wetaca auth login --token <jwt>\` (token ya extraído)
+2. \`wetaca auth status\` dice si hay sesión válida. Si no la hay:
+   - \`wetaca auth login\` (email + contraseña, por prompt)
+   - \`wetaca auth login --token T\` o \`--token --clipboard\`: token copiado de la cabecera
+     \`authorization: Bearer …\` de cualquier petición a api.wetaca.com en las DevTools del
+     usuario (F12 → Network). Es la vía si su cuenta entra con Google.
+   No pidas al usuario la contraseña de Google ni automatices su navegador para el login.
 
 ## Contrato de salida
 

@@ -12,9 +12,8 @@ USO
   wetaca [flags globales] <noun> <verb> [args] [flags]
 
 COMANDOS
-  auth          login [--email E --password P | --token T | --google [--code C]] | status | logout
-                login --google: abre el consent de Google en tu navegador, pega el code que
-                aparece en la barra de direcciones (wetaca.com/?code=...). --no-open imprime la URL.
+  auth          login [--email E --password P | --token T [--clipboard]] | status | logout
+                login --token: pega el token de sesión de wetaca.com (ver docs/cli-spec.md §6)
   me            show                       resumen de tu cuenta
   subscription  show | pause [--weeks N] | resume
   suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:cant,..."
@@ -58,7 +57,7 @@ _wetaca "$@"`,
 };
 
 // ---------- flag parsing ----------
-const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version', 'google', 'no-open', 'clipboard']);
+const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version', 'clipboard']);
 const VALUE_FLAGS = new Set(['format', 'error-format', 'profile', 'email', 'password', 'token',
   'weeks', 'feedback', 'set', 'limit', 'offset', 'suggestion', 'profile-suggestion', 'resume', 'code', 'state']);
 
@@ -128,10 +127,7 @@ async function main() {
 
   switch (noun) {
     case 'auth':
-      if (verb === 'login') {
-        if (flags.google) result = await C.authLoginGoogle(args, flags, ctx);
-        else result = await C.authLogin(args, flags, ctx);
-      }
+      if (verb === 'login') result = await C.authLogin(args, flags, ctx);
       else if (verb === 'status') result = await C.authStatus(args, flags, ctx);
       else if (verb === 'logout') result = await C.authLogout(args, flags, ctx);
       else throw usageUnknown(noun, verb);
