@@ -1,6 +1,6 @@
 {
   "name": "wetaca-cli",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Manage your Wetaca from the terminal: subscription, weekly menu, deliveries and orders. Built for people and AI agents.",
   "type": "module",
   "bin": {
