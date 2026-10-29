@@ -637,6 +637,55 @@ export async function walletShow(args, flags, ctx) {
   return { balance: d.walletBalance, balanceEur: cents(d.walletBalance) };
 }
 
+// ---------- vouchers apply / gift cards ----------
+
+// `vouchers apply CODE` / `vouchers skip` — applies (or explicitly skips) a voucher
+// on next week's suggestion.
+export async function vouchersApply(args, flags, ctx) {
+  const skip = args[0] === 'skip' || flags.skip === true;
+  const code = skip ? undefined : args[0];
+  if (!skip && !code) throw usageError("Usage: vouchers apply <CODE>  |  vouchers skip (explicitly don't use a voucher).");
+  const sid = flags.suggestion || await nextSuggestionId(ctx.profile, ctx.debug);
+  const payload = { voucherCode: skip ? undefined : code, skipVoucher: skip, suggestionId: sid };
+  if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'assignNextSuggestionVoucher', variables: payload } };
+  await confirm(flags, skip ? `Skip voucher on next week's delivery (suggestion ${sid}).` : `Apply voucher ${code} to next week's delivery (suggestion ${sid}).`);
+  const d = await gql(Q.ASSIGN_NEXT_SUGGESTION_VOUCHER, payload, { profile: ctx.profile, debug: ctx.debug });
+  const r = d.assignNextSuggestionVoucher || {};
+  return {
+    ok: true,
+    applied: r.appliedVoucher ? { code: r.appliedVoucher.code, discount: r.appliedVoucher.appliedDiscount } : null,
+    skipped: r.skipVoucher === true,
+    suggestionId: sid,
+  };
+}
+
+// `vouchers current` — what voucher (if any) is applied to next week's suggestion.
+export async function vouchersCurrent(args, flags, ctx) {
+  const d = await gql(Q.NEXT_SUGGESTION_APPLIED_VOUCHER, {}, { profile: ctx.profile, debug: ctx.debug });
+  const v = d.nextSuggestion?.appliedVoucher;
+  if (!v) return { applied: false, suggestionId: d.nextSuggestion?.id ?? null };
+  return { applied: true, suggestionId: d.nextSuggestion.id, code: v.code, discount: v.appliedDiscount };
+}
+
+// `giftcards show` — allowed min/max amounts.
+export async function giftShow(args, flags, ctx) {
+  const d = await gql(Q.GIFT_CARDS_CONFIG, {}, { profile: ctx.profile, debug: ctx.debug });
+  const c = d.giftCardsConfiguration || {};
+  return { minAmount: c.minAmount, maxAmount: c.maxAmount };
+}
+
+// `giftcards redeem CODE` — adds the gift card balance to your wallet.
+export async function giftRedeem(args, flags, ctx) {
+  const code = args[0];
+  if (!code) throw usageError('Usage: giftcards redeem <CODE>.');
+  const payload = { code: String(code).trim() };
+  if (ctx.dryRun) return { dryRun: true, wouldSend: { mutation: 'redeemGiftCard', variables: payload } };
+  await confirm(flags, `Redeem gift card ${payload.code} into your wallet.`);
+  const d = await gql(Q.REDEEM_GIFT_CARD, payload, { profile: ctx.profile, debug: ctx.debug });
+  const r = d.redeemGiftCard || {};
+  return { ok: true, code: r.code, amount: r.amount, amountEur: cents(r.amount) };
+}
+
 // ---------- config ----------
 
 export async function configCmd(verb, args, flags, ctx) {

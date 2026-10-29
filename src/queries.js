@@ -230,6 +230,25 @@ export const VOUCHERS = `query customerVouchersCli {
   }
 }`;
 
+export const NEXT_SUGGESTION_APPLIED_VOUCHER = `query nextSuggestionAppliedVoucher {
+  nextSuggestion { id appliedVoucher { code appliedDiscount } }
+}`;
+
+export const ASSIGN_NEXT_SUGGESTION_VOUCHER = `mutation assignNextSuggestionVoucher($voucherCode: String, $skipVoucher: Boolean!, $suggestionId: ModelId!) {
+  assignNextSuggestionVoucher(voucherCode: $voucherCode, skipVoucher: $skipVoucher, suggestionId: $suggestionId) {
+    appliedVoucher { code appliedDiscount }
+    skipVoucher
+  }
+}`;
+
+export const GIFT_CARDS_CONFIG = `query giftCardsConfiguration {
+  giftCardsConfiguration { minAmount maxAmount }
+}`;
+
+export const REDEEM_GIFT_CARD = `mutation redeemGiftCard($code: String!) {
+  redeemGiftCard(code: $code) { code amount }
+}`;
+
 export const WALLET = `query walletBalance { walletBalance }`;
 
 export const LOGOUT = `query registerLogout { registerLogout }`;

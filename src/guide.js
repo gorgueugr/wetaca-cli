@@ -57,6 +57,10 @@ Every command returns JSON on stdout by default; errors go to stderr.
      (review the plan; repeat with --yes; optional --notes --firstname --lastname --phone)
   wetaca addresses remove <id>        deletes an address not in use
   wetaca vouchers list
+  wetaca vouchers current            voucher applied to next week (if any)
+  wetaca vouchers apply <CODE>       apply a voucher to next week (--dry-run first, then --yes)
+  wetaca vouchers skip               explicitly use no voucher next week
+  wetaca giftcards show | redeem <CODE>   gift card limits / redeem into wallet
   wetaca wallet
   wetaca config path | list | get <k> | set <k> <v>
   wetaca doctor

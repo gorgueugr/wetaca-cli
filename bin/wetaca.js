@@ -31,7 +31,8 @@ COMMANDS
                 optional --notes --firstname --lastname --phone (inherit the current ones by default)
                 --dry-run shows the exact plan before executing
                 remove <id>: deletes an unused address
-  vouchers      list
+  vouchers      list | current | apply <CODE> | skip    vouchers and applying them to next week
+  giftcards     show | redeem <CODE>            gift cards: limits and redeem into your wallet
   wallet        show
   config        path | list | get <k> | set <k> <v>
   doctor        diagnostics (node, network, session)
@@ -194,7 +195,15 @@ async function main() {
       else throw usageUnknown(noun, verb);
       break;
     case 'vouchers':
-      if (verb === 'list') result = await C.vouchersList(args, flags, ctx);
+      if (verb === 'list' || verb === undefined) result = await C.vouchersList(args, flags, ctx);
+      else if (verb === 'apply') result = await C.vouchersApply(args, flags, ctx);
+      else if (verb === 'skip') result = await C.vouchersApply(['skip'], flags, ctx);
+      else if (verb === 'current') result = await C.vouchersCurrent(args, flags, ctx);
+      else throw usageUnknown(noun, verb);
+      break;
+    case 'giftcards':
+      if (verb === 'show' || verb === undefined) result = await C.giftShow(args, flags, ctx);
+      else if (verb === 'redeem') result = await C.giftRedeem(args, flags, ctx);
       else throw usageUnknown(noun, verb);
       break;
     case 'wallet':
