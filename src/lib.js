@@ -4,6 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import child_process from 'node:child_process';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+export const VERSION = require('../package.json').version;
 
 // ---------- exit codes (stable contract) ----------
 export const EXIT = {
@@ -140,7 +144,7 @@ export function getToken(profileName) {
 
 // ---------- GraphQL client ----------
 const API_URL = process.env.WETACA_API_URL || 'https://api.wetaca.com/graphql';
-const UA = 'wetaca-cli/0.1.0 (+https://github.com/GodGMN/wetaca-cli)';
+const UA = `wetaca-cli/${VERSION} (+https://github.com/GodGMN/wetaca-cli)`;
 
 async function rawRequest(query, variables, tok, debug) {
   const headers = {

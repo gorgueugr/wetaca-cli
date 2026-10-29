@@ -1,6 +1,7 @@
 # Guía de wetaca-cli
 
-Verificada contra la cuenta de Jorge (nov 2026). Lecturas = sin riesgo. Acciones = piden confirmación.
+Verificada contra una cuenta real (nov 2026). Lecturas = sin riesgo. Acciones = piden confirmación.
+Los ids y direcciones de los ejemplos son ficticios.
 
 ## 1. Consultar (lectura, sin riesgo)
 
@@ -11,7 +12,7 @@ wetaca suggestion show             # LA ESTRELLA: menú de la semana próxima po
 wetaca suggestion show --format pretty
 wetaca deliveries next             # sugerencia + pedidos pendientes + pagos pendientes
 wetaca orders list --limit 10      # histórico de pedidos (id, referencia, fecha, importe, factura)
-wetaca orders show 2576020         # detalle de un pedido: platos, dirección, franja
+wetaca orders show 1234567         # detalle de un pedido: platos, dirección, franja
 wetaca orders list --limit 3 --format jsonl   # una línea JSON por pedido (ideal jq/scripts)
 wetaca addresses list
 wetaca vouchers list
@@ -41,10 +42,10 @@ El `validUntil` de `suggestion show` es el deadline: esa fecha y hora deja de po
 wetaca suggestion show | jq '.profiles[0] | {profileSuggestionId, products: [.products[] | {id, name, quantity}]}'
 
 # 2. simula el cambio (--set "productId:cantidad,productId:cantidad"; cantidad 0 = quitar)
-wetaca suggestion edit --profile-suggestion 6ae30de9042a6173bddf1bde --set "124:2" --dry-run
+wetaca suggestion edit --profile-suggestion <PROFILE_SUGGESTION_ID> --set "124:2" --dry-run
 
 # 3. ejecuta
-wetaca suggestion edit --profile-suggestion 6ae30de9042a6173bddf1bde --set "124:2" --yes
+wetaca suggestion edit --profile-suggestion <PROFILE_SUGGESTION_ID> --set "124:2" --yes
 ```
 
 ### Pausar las vacaciones
@@ -77,19 +78,19 @@ wetaca profiles pause <id|nombre> --dry-run       # pausa solo ese perfil
 ### Cambiar la dirección de entrega
 ```bash
 # simulación del plan exacto (nada se toca)
-wetaca addresses save --street "Calle Ribera del Violón" --number 3 --floor 4B --zipcode 18006 --city Granada --dry-run
+wetaca addresses save --street "Calle Ejemplo" --number 1 --floor 2A --zipcode 18006 --city Granada --dry-run
 
 # ejecuta (pide confirmación; --yes para scripts): crea la dirección y la asigna a la
 # suscripción y a la semana próxima, conservando la franja de entrega actual
-wetaca addresses save --street "Calle Ribera del Violón" --number 3 --floor 4B --zipcode 18006 --city Granada --yes
+wetaca addresses save --street "Calle Ejemplo" --number 1 --floor 2A --zipcode 18006 --city Granada --yes
 ```
 Nombre, apellido, teléfono y notas se heredan de tu dirección actual salvo que pases
 --firstname/--lastname/--phone/--notes. Verifica después con `wetaca addresses list`.
 
 ### Cancelar un pedido confirmado
 ```bash
-wetaca orders cancel 2576020 --dry-run      # ver qué haría
-wetaca orders cancel 2576020 --yes          # cancelar (devuelve el importe)
+wetaca orders cancel 1234567 --dry-run      # ver qué haría
+wetaca orders cancel 1234567 --yes          # cancelar (devuelve el importe)
 ```
 
 ## 3. Automatizar con agentes IA

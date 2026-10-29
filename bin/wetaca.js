@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 // wetaca-cli — entry point: arg parsing, dispatch, help, error handling.
-import { CliError, EXIT, printError, loadConfig, configPath } from '../src/lib.js';
+import { CliError, EXIT, printError, loadConfig, configPath, VERSION } from '../src/lib.js';
 import * as C from '../src/commands.js';
 import { GUIDE } from '../src/guide.js';
-
-const VERSION = '0.1.0';
 
 const HELP = `wetaca-cli ${VERSION} — tu Wetaca desde el terminal.
 

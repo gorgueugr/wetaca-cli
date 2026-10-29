@@ -12,7 +12,7 @@ skip: false
 validUntil: Jue 30 oct 23:59
 week: { week: 45, year: 2026 }
 pricingEur: { toPay: 42,30 €, shipping: 0,00 € }
-profiles: 2 (Jorge, Ana)
+profiles: 2 (Perfil 1, Perfil 2)
 ```
 
 - **Todo lo que haces en la web**: ver el menú de la semana próxima por perfil, cambiar tuppers, saltar una semana, pausar la suscripción, ver entregas pasadas, cancelar un pedido, vouchers y cartera.
@@ -22,9 +22,11 @@ profiles: 2 (Jorge, Ana)
 ## Instalar
 
 ```
-npm install -g .          # desde este repo
+npm install -g wetaca-cli    # desde npm
 wetaca doctor
 ```
+
+O desde el repo: `npm install -g .`
 
 ## Empezar
 
@@ -34,7 +36,7 @@ wetaca auth login               # pide el refresh-token por prompt (oculto); tam
 wetaca me --format pretty
 ```
 
-La sesión se guarda en `%USERPROFILE%\.config\wetaca-cli\config.json` (o `$XDG_CONFIG_HOME/wetaca-cli`), cifrado no, permisos de usuario; se puede sobreescribir con `WETACA_TOKEN` (útil en CI).
+El refresh-token se guarda en `%USERPROFILE%\.config\wetaca-cli\credentials.json` (o `$XDG_CONFIG_HOME/wetaca-cli`), con permisos restrictivos (solo tu usuario); el resto de ajustes en `config.json`. En CI: `WETACA_TOKEN` o `WETACA_REFRESH_TOKEN`.
 
 ## Quickstart
 
@@ -73,7 +75,7 @@ wetaca skills get wetaca-usage
 ## Bueno saber
 
 - **No oficial.** Usa la API GraphQL de `api.wetaca.com` (la misma que la web y la app). Wetaca puede cambiarla; si lo hace, el CLI termina con exit 7 (`contract_drift`).
-- **Tu login se queda local.** El JWT se guarda en tu disco y solo viaja hacia Wetaca.
+- **Tu sesión se queda local.** El refresh-token se guarda solo en tu disco (fichero aparte, permisos restrictivos) y solo viaja hacia Wetaca.
 - **Nada sin confirmación.** Las operaciones con efectos reales (`suggestion pause/edit`, `subscription pause`, `orders cancel`) muestran un resumen y piden confirmación; sin terminal exigen `--yes`.
 - **No toca pagos.** Las tarjetas y pagos pendientes se gestionan en wetaca.com.
 - Sé amable: este CLI hace pocas peticiones, una por comando.
