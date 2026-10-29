@@ -18,6 +18,13 @@ export const SESSION_BY_PASSWORD = `query sessionTokenByPassword($login: String!
   }
 }`;
 
+export const SIGN_UP_WITH_GOOGLE = `mutation signUpWithGoogle($code: String!, $redirectUri: String!, $segmentSlug: String, $locale: String) {
+  signUpWithGoogle(code: $code, redirectUri: $redirectUri, segmentSlug: $segmentSlug, locale: $locale) {
+    ... on GoogleSignupSuccess { jwtToken isNewCustomer }
+    ... on GoogleNeedsLinkage { email tokenId requireLinkAccounts requirePhoneNumber passSet }
+  }
+}`;
+
 export const SUBSCRIBER_STATUS = `query subscriberAccountStatus {
   subscriptionAccountByCustomer { id isActive cancelled pausedUntil nextSuggestionSkipped }
 }`;

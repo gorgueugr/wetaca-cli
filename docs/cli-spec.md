@@ -26,7 +26,7 @@ Binario `wetaca`. Paquete npm `wetaca-cli`, JavaScript (Node ≥ 18), cero depen
 ## 3. Árbol de comandos
 
 ```
-auth        login | status | logout
+auth        login [--email E --password P | --token T | --google [--code C]] | status | logout
 me          show
 subscription  show | pause [--weeks N] [--feedback S] | resume
 suggestion  show | pause [--feedback S] | resume | edit --profile-suggestion ID --set "id:cant,..."
@@ -57,7 +57,10 @@ completion  bash | zsh | fish
 
 ## 6. Sesión
 
-- Login: `sessionTokenByPassword(username, password, segmentSlug)` → `{ customerId, jwtToken, requirePhoneNumber }`. Si `requirePhoneNumber`, se exige verificación SMS: hacer login en la web y usar `auth login --token <jwt>`.
+- Login con contraseña: `sessionTokenByPassword(username, password, segmentSlug)` → `{ customerId, jwtToken, requirePhoneNumber }`. Si `requirePhoneNumber`, se exige verificación SMS: hacer login en la web y usar `auth login --token <jwt>`.
+- Login con Google (`auth login --google`): mismo flujo OAuth de la web. El CLI abre
+  `https://accounts.google.com/o/oauth2/auth?redirect_uri=https://wetaca.com/google-oauth-redirection&response_type=code&scope=openid profile email&client_id=<publico>&prompt=consent&state=/`
+  (client_id público de wetaca.com, overridable con `WETACA_GOOGLE_CLIENT_ID`). El usuario completa Google, copia el `code` de la barra de direcciones (se acepta URL-encodado) y el CLI lo canjea con `signUpWithGoogle(code, redirectUri, segmentSlug, locale)` → `GoogleSignupSuccess{jwtToken}` | `GoogleNeedsLinkage{email,...}` (vinculación: usar contraseña). `--no-open` imprime la URL sin abrir navegador; `--code` evita el prompt; `--dry-run` muestra la URL.
 - Validación: `tokenIsValid(token)` (público).
 - Almacenamiento: `config.json` → `profiles.<nombre>.token`. `WETACA_TOKEN` tiene prioridad (CI). Perfiles: `--profile` / `WETACA_PROFILE` / `defaultProfile`.
 - Cabecera: `authorization: Bearer <jwt>` en cada petición.

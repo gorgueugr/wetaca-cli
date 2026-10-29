@@ -12,7 +12,9 @@ USO
   wetaca [flags globales] <noun> <verb> [args] [flags]
 
 COMANDOS
-  auth          login [--email E --password P | --token T] | status | logout
+  auth          login [--email E --password P | --token T | --google [--code C]] | status | logout
+                login --google: abre el consent de Google en tu navegador, pega el code que
+                aparece en la barra de direcciones (wetaca.com/?code=...). --no-open imprime la URL.
   me            show                       resumen de tu cuenta
   subscription  show | pause [--weeks N] | resume
   suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:cant,..."
@@ -56,9 +58,9 @@ _wetaca "$@"`,
 };
 
 // ---------- flag parsing ----------
-const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version']);
+const BOOL_FLAGS = new Set(['yes', 'no-input', 'dry-run', 'debug', 'no-color', 'help', 'version', 'google', 'no-open']);
 const VALUE_FLAGS = new Set(['format', 'error-format', 'profile', 'email', 'password', 'token',
-  'weeks', 'feedback', 'set', 'limit', 'offset', 'suggestion', 'profile-suggestion', 'resume']);
+  'weeks', 'feedback', 'set', 'limit', 'offset', 'suggestion', 'profile-suggestion', 'resume', 'code', 'state']);
 
 function parseArgs(argv) {
   const flags = {}, positional = [];
@@ -126,7 +128,10 @@ async function main() {
 
   switch (noun) {
     case 'auth':
-      if (verb === 'login') result = await C.authLogin(args, flags, ctx);
+      if (verb === 'login') {
+        if (flags.google) result = await C.authLoginGoogle(args, flags, ctx);
+        else result = await C.authLogin(args, flags, ctx);
+      }
       else if (verb === 'status') result = await C.authStatus(args, flags, ctx);
       else if (verb === 'logout') result = await C.authLogout(args, flags, ctx);
       else throw usageUnknown(noun, verb);
@@ -204,13 +209,14 @@ function usageUnknown(noun, verb) {
 main()
   .then((code) => { process.exitCode = code ?? 0; })
   .catch((err) => {
-    const flags = parseArgs(process.argv.slice(2)).flags;
+    const { flags } = parseArgs(process.argv.slice(2));
     const errorFormat = flags['error-format'] === 'json' ? 'json' : 'text';
+    const debug = flags.debug === true;
     if (err instanceof CliError) {
-      printError(err, errorFormat);
+      printError(err, errorFormat, debug);
       process.exitCode = err.exitCode;
     } else {
-      printError(new CliError(EXIT.UNEXPECTED, err.message, { reason: 'unexpected', details: { stack: err.stack } }), errorFormat);
+      printError(new CliError(EXIT.UNEXPECTED, err.message, { reason: 'unexpected', details: { stack: err.stack } }), errorFormat, debug);
       process.exitCode = EXIT.UNEXPECTED;
     }
   });

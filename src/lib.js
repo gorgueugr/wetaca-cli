@@ -202,7 +202,7 @@ function printTable(rows) {
   console.log(line('└', '┴', '┘'));
 }
 
-export function printError(err, errorFormat) {
+export function printError(err, errorFormat, debug = false) {
   if (errorFormat === 'json') {
     console.error(JSON.stringify({
       error: {
@@ -212,7 +212,7 @@ export function printError(err, errorFormat) {
         retryable: !!err.extra?.retryable,
         message: err.message,
         suggested_commands: err.extra?.suggested_commands || [],
-        ...(err.extra?.details ? { details: err.extra.details } : {}),
+        ...(debug && err.extra?.details ? { details: err.extra.details } : {}),
       },
     }, null, 2));
   } else {

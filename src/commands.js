@@ -1,5 +1,6 @@
 // wetaca-cli command implementations.
 import readline from 'node:readline/promises';
+import child_process from 'node:child_process';
 import {
   CliError, usageError, EXIT, gql, cents, fmtDate, emit,
   getToken, loadConfig, saveConfig, saveProfile, configPath, configDir,
@@ -35,6 +36,86 @@ async function nextSuggestionId(profile, debug) {
     throw new CliError(EXIT.NOT_FOUND, 'No hay sugerencia activa para la semana próxima.', { reason: 'no_suggestion' });
   }
   return d.nextSuggestion.id;
+}
+
+// ---------- auth: Google OAuth ----------
+// Flujo de la web de Wetaca: consent de Google -> redirect a
+// https://wetaca.com/google-oauth-redirection?code=...&state=<ruta> -> la SPA canjea el
+// code con signUpWithGoogle(code, redirectUri). Nosotros reproducimos el canje.
+export const GOOGLE_CLIENT_ID = process.env.WETACA_GOOGLE_CLIENT_ID ||
+  '339479386320-c6eg1bujf7nph17kmpspsljrmgr2le38.apps.googleusercontent.com'; // client_id público de wetaca.com
+const GOOGLE_REDIRECT_URI = 'https://wetaca.com/google-oauth-redirection';
+
+export function googleAuthUrl({ state = '/' } = {}) {
+  const params = new URLSearchParams({
+    redirect_uri: GOOGLE_REDIRECT_URI,
+    response_type: 'code',
+    scope: 'openid profile email',
+    client_id: GOOGLE_CLIENT_ID,
+    prompt: 'consent',
+    state,
+  });
+  return `https://accounts.google.com/o/oauth2/auth?${params.toString().replace(/%20/g, '%20')}`;
+}
+
+function openBrowser(url) {
+  const { spawn } = child_process;
+  try {
+    if (process.platform === 'win32') spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+    else spawn(process.platform === 'darwin' ? 'open' : 'xdg-open', [url], { detached: true, stdio: 'ignore' }).unref();
+    return true;
+  } catch { return false; }
+}
+
+export async function authLoginGoogle(args, flags, ctx) {
+  const url = googleAuthUrl({ state: flags.state || '/' });
+  if (ctx.dryRun || flags['no-open']) {
+    // sin apertura de navegador: imprime la URL y termina
+    if (ctx.dryRun) return { dryRun: true, authUrl: url, nextStep: 'abre la URL, inicia sesión con Google y copia el parámetro code de la barra de direcciones' };
+    console.error('wetaca: abre esta URL, inicia sesión con Google y copia el parámetro code de la barra de direcciones (wetaca.com/?code=...):');
+    console.error(url);
+  } else {
+    const opened = openBrowser(url);
+    console.error(opened
+      ? 'wetaca: se ha abierto tu navegador. Inicia sesión con Google; al volver a wetaca.com copia el parámetro code de la barra de direcciones (wetaca.com/?code=...).'
+      : 'wetaca: no pude abrir el navegador. Abre esta URL, inicia sesión y copia el parámetro code:');
+    if (!opened) console.error(url);
+  }
+
+  let code = flags.code;
+  if (!code) {
+    if (ctx.noInput || !process.stdin.isTTY) {
+      throw usageError('Sin terminal hace falta --code <code> (o usa --dry-run / --no-open).');
+    }
+    const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
+    code = (await rl.question('Pega el code: ')).trim();
+    rl.close();
+  }
+  // en la barra de direcciones el code va URL-encodado (4%2F0A...); aceptamos ambas formas
+  code = code.trim().replace(/^["']|["']$/g, '');
+  if (code.includes('%2F') || code.includes('%3D')) code = decodeURIComponent(code);
+  if (!code) throw usageError('Code vacío.');
+
+  const d = await gql(Q.SIGN_UP_WITH_GOOGLE, { code, redirectUri: GOOGLE_REDIRECT_URI, segmentSlug: null, locale: 'es' },
+    { anon: true, debug: ctx.debug });
+  const res = d.signUpWithGoogle;
+  if (res?.requireLinkAccounts || res?.tokenId) {
+    throw new CliError(EXIT.AUTH,
+      `Google devolvió una cuenta que requiere vinculación (email ${res.email}). ` +
+      'Entrando una vez en wetaca.com con Google y con contraseña quedará vinculado; ' +
+      'entonces usa `wetaca auth login --email <email> --password <pw>`.',
+      { reason: 'google_linkage_required' });
+  }
+  if (!res?.jwtToken) {
+    throw new CliError(EXIT.AUTH, 'El canje del code no devolvió token.', { reason: 'google_exchange_failed' });
+  }
+  const token = res.jwtToken;
+  const v = await gql(Q.TOKEN_IS_VALID, { token }, { token, debug: ctx.debug });
+  if (v.tokenIsValid !== true) {
+    throw new CliError(EXIT.AUTH, 'El token de Google no superó la validación.', { reason: 'invalid_token' });
+  }
+  saveProfile(ctx.profile, { token });
+  return { ok: true, profile: ctx.profile, isNewCustomer: !!res.isNewCustomer, token: token.slice(0, 8) + '…' };
 }
 
 // ---------- auth ----------
