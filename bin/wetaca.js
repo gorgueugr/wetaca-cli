@@ -10,14 +10,17 @@ USAGE
   wetaca [global flags] <noun> <verb> [args] [flags]
 
 COMMANDS
-  auth          login [--refresh-token COOKIE | --cookies FILE | --cookies-stdin | --token T [--clipboard]] | status | logout
-  auth login imports the refresh-token cookie from wetaca.com (F12 -> Application -> Cookies;
-                lasts ~120 days) and RENEWS the session token automatically when it expires.
-                The password is never asked for or stored.
-                --cookies FILE accepts browser exports: Netscape cookies.txt, Cookie-Editor/
-                EditThisCookie JSON, a Cookie: header, or the bare value; only cookies from
-                wetaca.com are read.
-                login --token: paste the session token straight from wetaca.com (expires ~1h)
+  auth          login [--token T [--clipboard] | --refresh-token COOKIE | --cookies FILE | --cookies-stdin] | status | logout
+  auth login opens https://wetaca.com in your browser: in DevTools (F12 -> Network ->
+                any request to api.wetaca.com) copy what comes after "authorization: Bearer "
+                (the session token) -> paste it at the prompt or pass --token T. The CLI
+                validates it and mints the session cookies via POST /session/start
+                (auth-token + refresh-token pair), so the session auto-renews itself
+                (~120 days). The password is never asked for.
+                Also accepted: --refresh-token COOKIE, a whole "Cookie:" header line, or a
+                cookie export (--cookies FILE / --cookies-stdin: Netscape, Cookie-Editor JSON).
+                Note: the server validates the auth-token + refresh-token PAIR; a bare
+                refresh-token always fails with 401.
   me            show                       account summary
   subscription  show | pause [--weeks N] | resume
   suggestion    show | pause | resume | edit --profile-suggestion ID --set "id:qty,..."

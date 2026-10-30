@@ -41,8 +41,8 @@ A portable skill file is also available at [`skill/SKILL.md`](skill/SKILL.md) fo
 ## Get started
 
 ```
-wetaca auth login --refresh-token <COOKIE>   # refresh-token cookie from wetaca.com (lasts ~120 days)
-wetaca auth login               # prompts for the refresh-token (hidden); also accepts a session JWT
+wetaca auth login --token <TOKEN>         # session token from DevTools (F12 -> Network -> api.wetaca.com -> "authorization: Bearer ..."); the CLI mints the session cookies and the session auto-renews (~120 days)
+wetaca auth login               # opens the browser and prompts for the token (hidden)
 wetaca me --format pretty
 ```
 

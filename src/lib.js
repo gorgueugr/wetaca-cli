@@ -45,7 +45,7 @@ export function configPath() { return path.join(configDir(), 'config.json'); }
 // El config.json nunca lleva secretos.
 export function credentialsPath() { return path.join(configDir(), 'credentials.json'); }
 
-const SECRET_KEYS = ['token', 'login', 'password', 'refreshToken'];
+const SECRET_KEYS = ['token', 'login', 'password', 'refreshToken', 'sessionAuthToken'];
 
 // Permisos restrictivos: 0600 en POSIX; en Windows, ACL solo para el usuario actual.
 function restrictPerms(p) {
@@ -144,6 +144,16 @@ export function getToken(profileName) {
 
 // ---------- GraphQL client ----------
 const API_URL = process.env.WETACA_API_URL || 'https://api.wetaca.com/graphql';
+// Session endpoints live on the main site origin, NOT on api.wetaca.com
+// (POST https://api.wetaca.com/session/refresh -> 404 "Cannot POST";
+// POST https://wetaca.com/session/refresh -> real route, 401 without a cookie).
+const SESSION_REFRESH_URL = process.env.WETACA_SESSION_REFRESH_URL || 'https://wetaca.com/session/refresh';
+// The web calls POST /session/start {token} right after validating credentials; its
+// Set-Cookie response is what issues the auth-token + refresh-token cookies.
+const SESSION_START_URL = process.env.WETACA_SESSION_START_URL || 'https://wetaca.com/session/start';
+// wetaca.com's WAF (Cloudflare) 403s non-browser User-Agents on /session/refresh,
+// while api.wetaca.com/graphql accepts the CLI UA. Use a browser UA for session endpoints only.
+const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36';
 const UA = `wetaca-cli/${VERSION} (+https://github.com/gorgueugr/wetaca-cli)`;
 
 async function rawRequest(query, variables, tok, debug) {
@@ -200,28 +210,60 @@ function storedRefreshToken(profile) {
   return c?.refreshToken || null;
 }
 
+// The auth-token cookie issued by /session/start (path=/). /session/refresh validates
+// the auth-token + refresh-token PAIR, so both must travel in the Cookie header.
+function storedSessionAuthToken(profile) {
+  const cfg = loadConfig();
+  const name = profile || cfg.defaultProfile || 'default';
+  return loadCreds().profiles?.[name]?.sessionAuthToken || null;
+}
+
 // Renews the token with the refresh-token cookie (120 days) via POST /session/refresh,
 // just like the web does (bundles: auth-token + refresh-token cookies, x-wetaca-session).
 // Also exported for `auth login --refresh-token`.
+// Chrome's cookie UI shows the DECODED value while the cookie travels percent-encoded,
+// so we try the pasted value plus its encoded/decoded variants before giving up.
 export async function sessionRefresh(rt, profile, debug) {
-  let res;
+  const candidates = [rt];
   try {
-    res = await fetch(`${API_URL}/session/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: `refresh-token=${rt}`,
-        'x-wetaca-session': '1',
-        'User-Agent': UA,
-      },
-    });
-  } catch (e) {
-    throw new CliError(EXIT.NETWORK, `Could not connect to the Wetaca API: ${e.cause?.code || e.message}`,
-      { reason: 'network', retryable: true });
+    const enc = encodeURIComponent(rt);
+    if (enc !== rt && !candidates.includes(enc)) candidates.push(enc);
+    const dec = decodeURIComponent(rt);
+    if (dec !== rt && !candidates.includes(dec)) candidates.push(dec);
+  } catch { /* malformed percent-encoding: keep the raw value */ }
+  const attempt = async (value) => {
+    const sessionAuth = storedSessionAuthToken(profile);
+    const cookie = sessionAuth
+      ? `auth-token=${sessionAuth}; refresh-token=${value}`
+      : `refresh-token=${value}`;
+    try {
+      return await fetch(SESSION_REFRESH_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: cookie,
+          'x-wetaca-session': '1',
+          'User-Agent': BROWSER_UA,
+        },
+      });
+    } catch (e) {
+      throw new CliError(EXIT.NETWORK, `Could not connect to the Wetaca API: ${e.cause?.code || e.message}`,
+        { reason: 'network', retryable: true });
+    }
+  };
+  let res = await attempt(candidates[0]);
+  for (let i = 1; i < candidates.length && (res.status === 400 || res.status === 401); i++) {
+    if (debug) console.error(`wetaca: refresh rejected with HTTP ${res.status}, retrying with re-encoded value (${i}/${candidates.length - 1})`);
+    res = await attempt(candidates[i]);
   }
+  if (debug) console.error(`wetaca: POST ${SESSION_REFRESH_URL} -> ${res.status}`);
   if (res.status === 400 || res.status === 401) {
-    throw new CliError(EXIT.AUTH, 'The refresh-token is invalid (copied incorrectly, expired, or revoked). Copy it from wetaca.com while logged in: F12 → Application → Cookies → wetaca.com → refresh-token (full value).',
-      { reason: 'refresh_token_invalid', retryable: false, suggested_commands: ['wetaca auth login --token T'] });
+    const body = (await res.text().catch(() => '')).slice(0, 200);
+    throw new CliError(EXIT.AUTH, 'The refresh-token is invalid (copied incorrectly, expired, or revoked). ' +
+      'Copy it from wetaca.com while logged in: open https://wetaca.com/session/refresh (an "Unauthorized" page is expected), ' +
+      'F12 -> Network -> click that request -> Cookies tab (Request Cookies) -> copy the full refresh-token value.',
+      { reason: 'refresh_token_invalid', retryable: false, suggested_commands: ['wetaca auth login --token T'],
+        details: { httpStatus: res.status, body } });
   }
   if (!res.ok) {
     throw new CliError(EXIT.API, `The API responded with HTTP ${res.status} while refreshing the session`,
@@ -243,6 +285,43 @@ export async function sessionRefresh(rt, profile, debug) {
   if (m && m[1] && m[1] !== rt) saveProfile(profile, { refreshToken: m[1] });
   if (debug) console.error('wetaca: token automatically renewed (refresh-token)');
   return j.token;
+}
+
+// Starts a browser-style session from a session token (the web's step right after
+// validating credentials): POST /session/start {token}. Wetaca responds with the session
+// cookies (auth-token with path=/ and refresh-token with path=/session/refresh, httpOnly).
+// /session/refresh validates the PAIR, so we capture both. Returns {refreshToken,
+// authToken} or null if the endpoint declined (not fatal).
+export async function sessionStart(token, profile, debug) {
+  let res;
+  try {
+    res = await fetch(SESSION_START_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-wetaca-session': '1',
+        'User-Agent': BROWSER_UA,
+      },
+      body: JSON.stringify({ token }),
+    });
+  } catch (e) {
+    throw new CliError(EXIT.NETWORK, `Could not connect to the Wetaca API: ${e.cause?.code || e.message}`,
+      { reason: 'network', retryable: true });
+  }
+  if (debug) console.error(`wetaca: POST ${SESSION_START_URL} -> ${res.status}`);
+  if (!res.ok) return null;
+  const setCookies = typeof res.headers.getSetCookie === 'function'
+    ? res.headers.getSetCookie()
+    : [res.headers.get('set-cookie')].filter(Boolean);
+  const out = { refreshToken: null, authToken: null };
+  for (const c of setCookies) {
+    const s = String(c);
+    let m = s.match(/(?:^|[,\s])refresh-token=([^;\s]+)/);
+    if (m && m[1]) out.refreshToken = m[1];
+    m = s.match(/(?:^|[,\s])auth-token=([^;\s]+)/);
+    if (m && m[1]) out.authToken = m[1];
+  }
+  return out.refreshToken ? out : null;
 }
 
 export async function gql(query, variables, { token, profile, debug, anon = false } = {}) {

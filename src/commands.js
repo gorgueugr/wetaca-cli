@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import {
   CliError, usageError, EXIT, gql, cents, fmtDate, fmtWindow, emit,
   getToken, loadConfig, saveConfig, saveProfile, configPath, configDir,
-  loadCreds, saveCreds, credentialsPath, sessionRefresh,
+  loadCreds, saveCreds, credentialsPath, sessionRefresh, sessionStart,
 } from './lib.js';
 import * as Q from './queries.js';
 
@@ -129,9 +129,41 @@ function ask(question, { hidden = false } = {}) {
   });
 }
 
+// Explains the session flow in a few lines and opens the browser so the user can grab
+// the refresh-token from localStorage (no path restriction there). All to STDERR (stdout = JSON).
+
+function openBrowser(url) {
+  try {
+    const { execSync } = child_process;
+    if (process.platform === 'win32') {
+      // rundll32 keeps the URL intact as argv (cmd /c start cuts at &, explorer.exe may open Explorer)
+      execSync(`rundll32 url.dll,FileProtocolHandler ${url}`, { stdio: 'ignore' });
+    } else if (process.platform === 'darwin') {
+      execSync(`open ${JSON.stringify(url)}`, { stdio: 'ignore' });
+    } else {
+      execSync(`xdg-open ${JSON.stringify(url)}`, { stdio: 'ignore' });
+    }
+    return true;
+  } catch { return false; }
+}
+
+function printLoginGuide() {
+  openBrowser('https://wetaca.com/');
+  const lines = [
+    '',
+    'Opening https://wetaca.com in your browser (make sure you are logged in).',
+    'In DevTools (F12 -> Network -> any request to api.wetaca.com) copy what comes after',
+    '"authorization: Bearer " (the session token). Paste it here and press Enter:',
+    'The CLI will start a full session (POST /session/start) and keep it auto-renewed.',
+    '',
+  ];
+  process.stderr.write(lines.join('\n'));
+}
+
 export async function authLogin(args, flags, ctx) {
   let token = flags.token;
   let viaRefresh = false;
+  let clipboardRefresh = null;
 
   if (flags.clipboard) {
     // read the token from the clipboard (e.g. extracted from the wetaca.com DevTools console)
@@ -142,11 +174,18 @@ export async function authLogin(args, flags, ctx) {
         : process.platform === 'darwin' ? execSync('pbpaste', { encoding: 'utf8' })
         : execSync('xclip -selection clipboard -o', { encoding: 'utf8' });
       const m = String(out).match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
-      token = m ? m[0] : String(out).trim();
+      const rt = extractRefreshToken(m ? m[0] : String(out));
+      if (m) {
+        token = m[0]; // session JWT
+      } else if (rt) {
+        clipboardRefresh = rt; // refresh-token (e.g. copied with the console snippet)
+      } else {
+        token = String(out).trim();
+      }
     } catch (e) {
       throw usageError('Could not read the clipboard: ' + e.message);
     }
-    if (!token) throw usageError('The clipboard is empty.');
+    if (!token && !clipboardRefresh) throw usageError('The clipboard is empty.');
   }
 
   let customer = null;
@@ -165,19 +204,24 @@ export async function authLogin(args, flags, ctx) {
       throw usageError('Could not read the cookies file: ' + e.message);
     }
   }
-  if (cookieFileInput != null || flags['refresh-token'] || process.env.WETACA_REFRESH_TOKEN) {
+  if (cookieFileInput != null || flags['refresh-token'] || process.env.WETACA_REFRESH_TOKEN || clipboardRefresh) {
     // Import the refresh-token from the web (120-day cookie)
     // and let /session/refresh mint the session tokens. No password is ever requested.
     let rt;
     if (cookieFileInput != null) {
       rt = extractRefreshToken(cookieFileInput);
     } else {
-      rt = String(flags['refresh-token'] || process.env.WETACA_REFRESH_TOKEN).trim();
+      rt = String(flags['refresh-token'] || process.env.WETACA_REFRESH_TOKEN || clipboardRefresh || '').trim();
     }
     if (!rt) {
       throw new CliError(EXIT.AUTH,
-        'The cookie export contains no "refresh-token" cookie from wetaca.com. ' +
-        'Make sure to export the cookies while logged in to wetaca.com (the cookie is created on login).',
+        'The cookie export contains no "refresh-token" cookie from wetaca.com. That cookie is ' +
+        'written with path=/session/refresh, so it does NOT appear in Cookie-Editor or ' +
+        'Application -> Cookies on normal pages. Get it while logged in: either open ' +
+        'https://wetaca.com/session/refresh (a bare "Unauthorized" page is expected) and the ' +
+        'cookie becomes visible there, or F12 -> Network -> filter "refresh" -> POST ' +
+        '/session/refresh -> Request Headers -> copy the whole "Cookie:" line (the CLI ' +
+        'extracts the refresh-token from it).',
         { reason: 'refresh_token_missing', suggested_commands: ['wetaca auth login --refresh-token VALOR'] });
     }
     saveProfile(ctx.profile, { refreshToken: rt });
@@ -187,7 +231,8 @@ export async function authLogin(args, flags, ctx) {
     } catch (e) {
       throw new CliError(e.exitCode || EXIT.AUTH,
         'Could not refresh the session with that refresh-token. ' + e.message,
-        { reason: 'invalid_refresh_token', suggested_commands: ['wetaca auth login --token T'] });
+        { reason: 'invalid_refresh_token', suggested_commands: ['wetaca auth login --token T'],
+          details: e.extra?.details });
     }
     const c = await gql(Q.CUSTOMER, {}, { token, debug: ctx.debug });
     customer = c.customer;
@@ -211,26 +256,45 @@ export async function authLogin(args, flags, ctx) {
         '(without the word Bearer, without quotes). Original error: ' + e.message,
         { reason: 'invalid_token' });
     }
+    // Mint a refresh-token from the session token (the web's POST /session/start step).
+    // If Wetaca issues one, the session becomes auto-renewable; if it declines, we keep
+    // the short-lived session (not fatal).
+    try {
+      const out = await sessionStart(token, ctx.profile, ctx.debug);
+      if (out) {
+        saveProfile(ctx.profile, { refreshToken: out.refreshToken, sessionAuthToken: out.authToken });
+        viaRefresh = true;
+        if (ctx.debug) console.error('wetaca: /session/start issued the session cookies (session is now auto-renewable)');
+      } else if (ctx.debug) {
+        console.error('wetaca: /session/start did not issue a refresh-token');
+      }
+    } catch (e) {
+      if (ctx.debug) console.error('wetaca: /session/start attempt failed: ' + e.message);
+    }
   } else {
     // Without --refresh-token or --token: prompt for it on the terminal (hidden). Accepts the
     // refresh-token cookie (preferred, lasts 120 days) or a direct session JWT.
     if (ctx.noInput || !process.stdin.isTTY) {
-      throw usageError('Without a terminal you need --refresh-token VALUE (a wetaca.com cookie, F12 → Application → Cookies), or --token VALUE / --token --clipboard.');
+      throw usageError('Without a terminal you need --refresh-token VALUE (from wetaca.com while logged in: F12 -> Network -> filter "refresh" -> POST /session/refresh -> Request Headers -> Cookie -> refresh-token; the cookie is path-restricted so it does NOT appear in Application -> Cookies), or --token VALUE / --token --clipboard.');
     }
-    const pasted = await ask('Paste the refresh-token (or the session token) and press Enter: ', { hidden: true });
+    printLoginGuide();
+    const pasted = await ask('Refresh-token / session token (hidden): ', { hidden: true });
     const v = (pasted || '').trim().replace(/^["']|["']$/g, '');
     if (!v) throw usageError('No token was pasted.');
     if (v.startsWith('eyJ')) {
       token = v; // direct session JWT
     } else {
-      saveProfile(ctx.profile, { refreshToken: v });
+      // Accepts the bare value, a whole "Cookie: ..." line, or a cookie export.
+      const rt = extractRefreshToken(v) || v;
+      saveProfile(ctx.profile, { refreshToken: rt });
       try {
-        token = await sessionRefresh(v, ctx.profile, ctx.debug);
+        token = await sessionRefresh(rt, ctx.profile, ctx.debug);
         viaRefresh = true;
       } catch (e) {
         throw new CliError(e.exitCode || EXIT.AUTH,
           'Could not refresh the session with that refresh-token. ' + e.message,
-          { reason: 'invalid_refresh_token', suggested_commands: ['wetaca auth login --token T'] });
+          { reason: 'invalid_refresh_token', suggested_commands: ['wetaca auth login --token T'],
+            details: e.extra?.details });
       }
     }
     try {
@@ -239,6 +303,19 @@ export async function authLogin(args, flags, ctx) {
     } catch (e) {
       throw new CliError(EXIT.AUTH, 'The API rejected the token. Original error: ' + e.message,
         { reason: 'invalid_token' });
+    }
+    // Same as --token: try to mint the session cookie pair so the session auto-renews.
+    if (token.startsWith('eyJ')) {
+      try {
+        const out = await sessionStart(token, ctx.profile, ctx.debug);
+        if (out) {
+          saveProfile(ctx.profile, { refreshToken: out.refreshToken, sessionAuthToken: out.authToken });
+          viaRefresh = true;
+          if (ctx.debug) console.error('wetaca: /session/start issued the session cookies (session is now auto-renewable)');
+        }
+      } catch (e) {
+        if (ctx.debug) console.error('wetaca: /session/start attempt failed: ' + e.message);
+      }
     }
   }
 

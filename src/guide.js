@@ -8,10 +8,12 @@ Every command returns JSON on stdout by default; errors go to stderr.
 
 1. Run \`wetaca doctor\` to check node, connectivity and session.
 2. \`wetaca auth status\` tells you whether there is a valid session. If there isn't:
-   - \`wetaca auth login --cookies cookies.txt\` (export with the Cookie-Editor extension on wetaca.com while logged in) or \`--refresh-token COOKIE\` (a wetaca.com cookie, lasts ~120 days; the CLI renews the token on its own). No password involved.
-   - \`wetaca auth login --token T\` or \`--token --clipboard\`: token copied from the
-     \`authorization: Bearer *** header of any request to api.wetaca.com in the
-     user's DevTools (F12 → Network). This is the way to go if their account logs in with Google.
+   - \`wetaca auth login --token T\` (or \`--token --clipboard\`, or paste it when prompted): copy the
+     \`authorization: Bearer *** header of any request to api.wetaca.com in the user's DevTools
+     (F12 → Network). The CLI validates it and then mints the session cookies exactly like the
+     website does after a login (POST /session/start issues the auth-token + refresh-token pair),
+     so the session auto-renews for ~120 days. This is the way to go if their account logs in
+     with Google. No password involved.
    Never ask the user for their Google password and never automate their browser for the login.
 
 ## Output contract

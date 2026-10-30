@@ -113,6 +113,6 @@ Automation ideas (cron):
 
 ## 4. Session
 
-- Status: `wetaca auth status` · Refresh: `wetaca auth login --cookies cookies.txt` (export with Cookie-Editor) or `--refresh-token <COOKIE>` (F12 → Application → Cookies → `refresh-token`; lasts ~120 days and the CLI renews the token itself). Alternative: `wetaca auth login --token <TOKEN> --clipboard` (expires in ~1h).
+- Status: `wetaca auth status` · Login: `wetaca auth login --token <TOKEN>` (or `--token --clipboard`): copy the `authorization: Bearer ***` header of any request to api.wetaca.com in DevTools (F12 -> Network). The CLI validates it and mints the session cookies via POST /session/start (auth-token + refresh-token pair), so the session auto-renews itself for ~120 days. VERIFIED end-to-end. Note: the server validates the cookie PAIR — a bare refresh-token always 401s.
 - The token lives in `~/.config/wetaca-cli/credentials.json` (0600) and the rest of the settings in `config.json`; `WETACA_TOKEN` overrides it (CI).
 - If the API rejects it (exit 3), redo the extraction with DevTools (docs/cli-spec.md §6).
